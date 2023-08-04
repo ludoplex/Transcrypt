@@ -1,5 +1,5 @@
 class Spawn:
-    def __init__ (self, width, height):
+    def __init__(self, width, height):
         self.width, self.height, self.spacing = self.fill = width, height, 100, d3.scale.category20 ()
 
         self.svg = d3.select ('body'
@@ -8,15 +8,17 @@ class Spawn:
         ) .attr ('height', self.height
         ) .on ('mousemove', self.mousemove
         ) .on ('mousedown', self.mousedown)
-        
+
         self.svg.append ('rect'
         ) .attr ('width', self.width
         ) .attr ('height', self.height)
 
-        self.cursor = self.svg.append ('circle'
-        ) .attr ('r', self.spacing
-        ) .attr ('transform', 'translate ({}, {})' .format (self.width / 2, self.height / 2)
-        ) .attr ('class', 'cursor')
+        self.cursor = (
+            self.svg.append('circle')
+            .attr('r', self.spacing)
+            .attr('transform', f'translate ({self.width / 2}, {self.height / 2})')
+            .attr('class', 'cursor')
+        )
 
         self.force = d3.layout.force (
         ) .size ([self.width, self.height]
@@ -26,11 +28,11 @@ class Spawn:
         ) .on ('tick', self.tick)       
 
         self.nodes, self.links, self.node, self.link = self.force.nodes (), self.force.links (), self.svg.selectAll ('.node'), self.svg.selectAll ('.link')
-        
+
         self.restart ()
         
-    def mousemove (self):
-        self.cursor.attr ('transform', 'translate (' + d3.mouse (self.svg.node ()) + ')')
+    def mousemove(self):
+        self.cursor.attr('transform', f'translate ({d3.mouse(self.svg.node())})')
 
     def mousedown (self):
         def pushLink (target):

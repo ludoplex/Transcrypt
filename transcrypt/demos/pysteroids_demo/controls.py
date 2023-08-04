@@ -51,7 +51,4 @@ class ControlAxis:
             dz = False
             self.value -= interval * self.attack
 
-        if dz:
-            self.value = 0
-        else:
-            self.value = clamp(self.value, -1, 1)
+        self.value = 0 if dz else clamp(self.value, -1, 1)

@@ -39,7 +39,7 @@ class TestFormatter(logging.Formatter):
         """ Override the format Method
         """
         msg = logging.Formatter.format(self, record)
-        msg = "Custom: " + msg
+        msg = f"Custom: {msg}"
         return(msg)
 
 def run(test):
@@ -118,7 +118,7 @@ def run(test):
     test.check( tlog.level )
 
 
-    for i in range(0, 10):
+    for _ in range(0, 10):
         logging.debug("1234")
         logging.info("asdf")
         logging.warning("ioureoiu")

@@ -22,17 +22,25 @@ def LabeledSlider(sources):
                 ) \
             .flatten() \
             .remember() # https://github.com/staltz/xstream/wiki/Migrating-from-RxJS
-                        # all streams are hot, the start with would be forgotten w/o this:
-
-    vdomS = stateS \
-            .map(lambda state: \
-                div('.labeled-slider', [
-                    span('.label',
-                        state.label + ' ' + state.value + state.unit),
-                    input('.slider', {'attrs': {
-                        'type': 'range', 'min': state.min,
-                        'max': state.max, 'value': state.value}}),
-                    ]))
+    vdomS = stateS.map(
+        lambda state: div(
+            '.labeled-slider',
+            [
+                span('.label', f'{state.label} {state.value}{state.unit}'),
+                input(
+                    '.slider',
+                    {
+                        'attrs': {
+                            'type': 'range',
+                            'min': state.min,
+                            'max': state.max,
+                            'value': state.value,
+                        }
+                    },
+                ),
+            ],
+        )
+    )
     # sinks:
     return dict(DOM=vdomS, value=stateS.map(lambda state: state.value))
 

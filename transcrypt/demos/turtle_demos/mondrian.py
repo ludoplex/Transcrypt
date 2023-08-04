@@ -17,11 +17,11 @@ def between (a, b):
     return a + (0.2 + 0.3 * random ()) * (b - a)
 
 recentColors = ['black', 'black']
-def originalColor ():
+def originalColor():
     global recentColors
     while True:
         result = choice (colors)
-        if result == 'white' or not result in recentColors:
+        if result == 'white' or result not in recentColors:
             recentColors = [result, recentColors [0]]
             print (result, end = ' ')
             return result

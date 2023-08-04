@@ -138,9 +138,7 @@ class Game:
         self.graphics.add(self.ship)
 
         def rsign():
-            if random.random() < .5:
-                return -1
-            return 1
+            return -1 if random.random() < .5 else 1
 
         for a in range(8):
             x = (random.random() - 0.5) * 2
@@ -218,7 +216,7 @@ class Game:
             if d.radius > 1.5:
                 self.audio.explode()
                 new_asteroids = random.randint(2, 5)
-                for n in range(new_asteroids):
+                for _ in range(new_asteroids):
                     new_a = Asteroid((d.radius + 1.0) / new_asteroids, d.position)
                     mx = (random.random() - 0.5) * 6
                     my = (random.random() - 0.5) * 4
@@ -317,7 +315,7 @@ class Game:
             nonlocal elapsed, count, messages, repeats
             if count < messages * repeats:
                 elapsed += t / period
-                count = int(elapsed)
+                count = elapsed
                 lintime = elapsed % 1
                 opacity = math.pow(math.sin(lintime * 3.1415), 2)
                 logger.info(lintime)

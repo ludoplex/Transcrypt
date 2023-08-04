@@ -1,6 +1,6 @@
 boyName = 'John'
 girlName = 'Mary'
-both = boyName + ' and ' + girlName
+both = f'{boyName} and {girlName}'
 print (both)
 
 print ('one', 'two', 'three')

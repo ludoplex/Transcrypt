@@ -12,13 +12,14 @@ def render(toggled):
 
 def main(drivers):
     xs = xstream['default']
-    driver_sinks = {
-        'DOM': drivers['DOM'].select('input').events('change')     \
-                .map(lambda ev: ev.target.checked)                 \
-                .startWith(False)                                  \
-                .map(render)
-            }
-    return driver_sinks
+    return {
+        'DOM': drivers['DOM']
+        .select('input')
+        .events('change')
+        .map(lambda ev: ev.target.checked)
+        .startWith(False)
+        .map(render)
+    }
 
 
 drivers = {'DOM': dom.makeDOMDriver('#app')}

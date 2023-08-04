@@ -7,10 +7,9 @@ def phase (x):
 def polar (x):
     return (Math.abs (x), 0) if __typeof__ (x) is 'number' else (abs (x), phase (x))
     
-def rect (r, phi):
+def rect(r, phi):
     __pragma__ ('opov')
     return r * (Math.cos (phi) + 1.j * Math.sin (phi))
-    __pragma__ ('noopov')
     
 def exp (x):
     return complex (x, 0) .__exp__ () if __typeof__ (x) is 'number' else x.__exp__ ()

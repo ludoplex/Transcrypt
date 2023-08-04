@@ -84,20 +84,19 @@ class Paddle (Sprite):
             y = 0
         )
         
-    def predict (self): # Let paddle react on keys
+    def predict(self): # Let paddle react on keys
         self.vY = 0
-        
+
         if self.index:                          # Right player
             if self.game.keyCode == ord ('K'):  # Letter K pressed
                 self.vY = self.speed
             elif self.game.keyCode == ord ('M'):
                 self.vY = -self.speed
-        else:                                   # Left player
-            if self.game.keyCode == ord ('A'):
-                self.vY = self.speed
-            elif self.game.keyCode == ord ('Z'):
-                self.vY = -self.speed
-                
+        elif self.game.keyCode == ord ('A'):
+            self.vY = self.speed
+        elif self.game.keyCode == ord ('Z'):
+            self.vY = -self.speed
+
         Sprite.predict (self)                   # Do not yet commit, paddle may bounce with walls
 
     def interact (self):    # Paddles and ball assumed infinitely thin
@@ -163,17 +162,36 @@ class Scoreboard (Attribute):
     nameShift = 75
     hintShift = 25
             
-    def install (self): # Graphical representation of scoreboard are four labels and a separator line
-        self.playerLabels = [__new__ (fabric.Text ('Player {}'.format (name), {
-                'fill': 'white', 'fontFamily': 'arial', 'fontSize': '{}' .format (self.game.canvas.width / 30),
-                'left': self.game.orthoX (position * orthoWidth), 'top': self.game.orthoY (fieldHeight // 2 + self.nameShift)
-        })) for name, position in (('AZ keys:', -7/16), ('KM keys:', 1/16))]
-        
-        self.hintLabel = __new__ (fabric.Text ('[spacebar] starts game, [enter] resets score', {
-                'fill': 'white', 'fontFamily': 'arial', 'fontSize': '{}'.format (self.game.canvas.width / 70),
-                'left': self.game.orthoX (-7/16 * orthoWidth), 'top': self.game.orthoY (fieldHeight // 2 + self.hintShift)
-        }))
-        
+    def install(self): # Graphical representation of scoreboard are four labels and a separator line
+        self.playerLabels = [
+            __new__(
+                fabric.Text(
+                    f'Player {name}',
+                    {
+                        'fill': 'white',
+                        'fontFamily': 'arial',
+                        'fontSize': f'{self.game.canvas.width / 30}',
+                        'left': self.game.orthoX(position * orthoWidth),
+                        'top': self.game.orthoY(fieldHeight // 2 + self.nameShift),
+                    },
+                )
+            )
+            for name, position in (('AZ keys:', -7 / 16), ('KM keys:', 1 / 16))
+        ]
+
+        self.hintLabel = __new__(
+            fabric.Text(
+                '[spacebar] starts game, [enter] resets score',
+                {
+                    'fill': 'white',
+                    'fontFamily': 'arial',
+                    'fontSize': f'{self.game.canvas.width / 70}',
+                    'left': self.game.orthoX(-7 / 16 * orthoWidth),
+                    'top': self.game.orthoY(fieldHeight // 2 + self.hintShift),
+                },
+            )
+        )
+
         self.image = __new__ (fabric.Line ([
                 self.game.orthoX (-orthoWidth // 2), self.game.orthoY (fieldHeight // 2),
                 self.game.orthoX (orthoWidth // 2), self.game.orthoY (fieldHeight // 2)
@@ -188,11 +206,22 @@ class Scoreboard (Attribute):
         self.scores = [0, 0]
         Attribute.reset (self)  # Only does a commit here
         
-    def commit (self):          # Committing labels is adapting their texts
-        self.scoreLabels = [__new__ (fabric.Text ('{}'.format (score), {
-                'fill': 'white', 'fontFamily': 'arial', 'fontSize': '{}'.format (self.game.canvas.width / 30),
-                'left': self.game.orthoX (position * orthoWidth), 'top': self.game.orthoY (fieldHeight // 2 + self.nameShift)
-        })) for score, position in zip (self.scores, (-2/16, 6/16))]
+    def commit(self):          # Committing labels is adapting their texts
+        self.scoreLabels = [
+            __new__(
+                fabric.Text(
+                    f'{score}',
+                    {
+                        'fill': 'white',
+                        'fontFamily': 'arial',
+                        'fontSize': f'{self.game.canvas.width / 30}',
+                        'left': self.game.orthoX(position * orthoWidth),
+                        'top': self.game.orthoY(fieldHeight // 2 + self.nameShift),
+                    },
+                )
+            )
+            for score, position in zip(self.scores, (-2 / 16, 6 / 16))
+        ]
 
     def draw (self):
         for playerLabel, scoreLabel in zip (self.playerLabels, self.scoreLabels):

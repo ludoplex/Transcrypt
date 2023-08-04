@@ -1,17 +1,16 @@
 from org.transcrypt.stubs.browser import *
 from org.transcrypt.stubs.browser import __pragma__, __envir__
 
-def indices (key):
+def indices(key):
     if __envir__.executor_name == __envir__.transpiler_name:
         return tuple (key) if type (key) == list else key
-    else:
+    try:
+        return key.indices (1000000000)
+    except:
         try:
-            return key.indices (1000000000)
+            return tuple(indices (subkey) for subkey in key)
         except:
-            try:
-                return tuple ([indices (subkey) for subkey in key])
-            except:
-                return key
+            return key
 
 class Test:
     def __init__ (self, autoTester):

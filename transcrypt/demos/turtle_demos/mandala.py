@@ -15,9 +15,9 @@ for a_color, a_pensize, start_radius, stop_radius, radius_step in (
 ):
     pensize (a_pensize)
     color (a_color)
-    for angle_index in range (10):
+    for _ in range (10):
         for radius in range (start_radius, stop_radius, radius_step):
             circle (radius)
         right (36)
-        
+
 done ()

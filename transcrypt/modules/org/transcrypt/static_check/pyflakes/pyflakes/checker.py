@@ -80,8 +80,7 @@ def iter_child_nodes(node, omit=None, _fields_order=_FieldsOrder()):
         if isinstance(field, ast.AST):
             yield field
         elif isinstance(field, list):
-            for item in field:
-                yield item
+            yield from field
 
 
 class Binding(object):
@@ -186,9 +185,9 @@ class ExportBinding(Binding):
         else:
             self.names = []
         if isinstance(source.value, (ast.List, ast.Tuple)):
-            for node in source.value.elts:
-                if isinstance(node, ast.Str):
-                    self.names.append(node.s)
+            self.names.extend(
+                node.s for node in source.value.elts if isinstance(node, ast.Str)
+            )
         super(ExportBinding, self).__init__(name, source)
 
 
@@ -386,8 +385,11 @@ class Checker(object):
                 return node
 
     def getCommonAncestor(self, lnode, rnode, stop):
-        if stop in (lnode, rnode) or not (hasattr(lnode, 'parent') and
-                                          hasattr(rnode, 'parent')):
+        if (
+            stop in (lnode, rnode)
+            or not hasattr(lnode, 'parent')
+            or not hasattr(rnode, 'parent')
+        ):
             return None
         if lnode is rnode:
             return lnode
@@ -399,19 +401,15 @@ class Checker(object):
         return self.getCommonAncestor(lnode.parent, rnode.parent, stop)
 
     def descendantOf(self, node, ancestors, stop):
-        for a in ancestors:
-            if self.getCommonAncestor(node, a, stop):
-                return True
-        return False
+        return any(self.getCommonAncestor(node, a, stop) for a in ancestors)
 
     def differentForks(self, lnode, rnode):
         """True, if lnode and rnode are located on different forks of IF/TRY"""
         ancestor = self.getCommonAncestor(lnode, rnode, self.root)
-        parts = getAlternatives(ancestor)
-        if parts:
+        if parts := getAlternatives(ancestor):
             for items in parts:
                 if self.descendantOf(lnode, items, ancestor) ^ \
-                   self.descendantOf(rnode, items, ancestor):
+                       self.descendantOf(rnode, items, ancestor):
                     return True
         return False
 
@@ -568,10 +566,7 @@ class Checker(object):
 
     def isLiteralTupleUnpacking(self, node):
         if isinstance(node, ast.Assign):
-            for child in node.targets + [node.value]:
-                if not hasattr(child, 'elts'):
-                    return False
-            return True
+            return all(hasattr(child, 'elts') for child in node.targets + [node.value])
 
     def isDocstring(self, node):
         """
@@ -598,8 +593,11 @@ class Checker(object):
             node.col_offset += self.offset[1]
         if self.traceTree:
             print('  ' * self.nodeDepth + node.__class__.__name__)
-        if self.futuresAllowed and not (isinstance(node, ast.ImportFrom) or
-                                        self.isDocstring(node)):
+        if (
+            self.futuresAllowed
+            and not isinstance(node, ast.ImportFrom)
+            and not self.isDocstring(node)
+        ):
             self.futuresAllowed = False
         self.nodeDepth += 1
         node.depth = self.nodeDepth
@@ -694,9 +692,11 @@ class Checker(object):
 
                 # Remove UndefinedName messages already reported for this name.
                 self.messages = [
-                    m for m in self.messages if not
-                    isinstance(m, messages.UndefinedName) and not
-                    m.message_args[0] == node_name]
+                    m
+                    for m in self.messages
+                    if not isinstance(m, messages.UndefinedName)
+                    and m.message_args[0] != node_name
+                ]
 
                 # Bind name to global scope if it doesn't exist already.
                 global_scope.setdefault(node_name, node_value)
@@ -795,7 +795,7 @@ class Checker(object):
             args.append(wildcard if PY33 else wildcard.arg)
             if is_py3_func:
                 if PY33:  # Python 2.5 to 3.3
-                    argannotation = arg_name + 'annotation'
+                    argannotation = f'{arg_name}annotation'
                     annotations.append(getattr(node.args, argannotation))
                 else:     # Python >= 3.4
                     annotations.append(wildcard.annotation)
@@ -903,8 +903,7 @@ class Checker(object):
         # List the exception handlers
         for handler in node.handlers:
             if isinstance(handler.type, ast.Tuple):
-                for exc_type in handler.type.elts:
-                    handler_names.append(getNodeName(exc_type))
+                handler_names.extend(getNodeName(exc_type) for exc_type in handler.type.elts)
             elif handler.type:
                 handler_names.append(getNodeName(handler.type))
         # Memorize the except handlers and process the body

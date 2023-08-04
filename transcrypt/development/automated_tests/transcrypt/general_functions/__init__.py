@@ -14,7 +14,7 @@ class C:
     def __len__ (self):
         return 42
 
-def run (autoTester):
+def run(autoTester):
     autoTester.check ('len')
 
     strings = ['hello', ',', 'world', '!']
@@ -37,29 +37,29 @@ def run (autoTester):
     autoTester.check ('sort and sorted<br>')
     a = [1, 5, 3, 2, -1]
     b = ['sun', 'earth', 'moon']
-    
+
     autoTester.check (sorted (a))
     autoTester.check (sorted (b))
-    
+
     a.sort ()
     autoTester.check (a)
-    
+
     b.sort ()
     autoTester.check (b)
 
     autoTester.check (sorted (a, reverse = True))
     autoTester.check (sorted (b, reverse = True))
-    
+
     a.sort (reverse = True)
     autoTester.check (a)
-    
+
     b.sort (reverse = True)
     autoTester.check (b)
-    
-    b.sort (key = lambda x: len (x)) 
+
+    b.sort (key = lambda x: len (x))
     autoTester.check (b)
 
-    b.sort (key = lambda x: len (x), reverse = True) 
+    b.sort (key = lambda x: len (x), reverse = True)
     autoTester.check (b)
 
     autoTester.check ('<br><br>dir<br>')
@@ -77,27 +77,27 @@ def run (autoTester):
     autoTester.check (list2, any (list2), all (list2))
     autoTester.check (list3, any (list3), all (list3))
     autoTester.check (list4, any (list4), all (list4))
-    
+
     autoTester.check (sum (range (5)))
-      
-    def generator1 ():
-        for i in range (5):
-            yield i;
-            
+
+    def generator1():
+        yield from range (5)
+
     def generator2 ():
         for i in range (5):
             if i % 2:
                 yield 0
             else:
                 yield i;
-                
+
     def generator3 ():
         for i in range (5):
             yield 0;
-                
+
         autoTester.check (generator1 (), any (generator1 ()), all (generator1 ()))
         autoTester.check (generator2 (), any (generator2 ()), all (generator2 ()))
         autoTester.check (generator3 (), any (generator3 ()), all (generator3 ()))
-        
+
         autoTester.check (sum (generator1 ()))
+
     __pragma__ ('endif')

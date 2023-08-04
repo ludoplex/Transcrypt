@@ -1,18 +1,17 @@
 from org.transcrypt.stubs.browser import __pragma__
 
 class UppercaserMeta (type):
-    def __new__ (meta, name, bases, attribs):
+    def __new__(cls, name, bases, attribs):
         __pragma__ ('jsiter')       # Translate for ... in directly to JavaScript for ... in ... and translate {} to bare {} rather than to dict {}
-                                    # Using bare {} as attribs parameter to __new__ avoids dict attributes masking regular attributes
-                                    # For more flexibility use __pragma__ ('js', '{}', '''...''')
-        upperAttribs = {}
-        
-        for attribKey in attribs:   # Translates to 'for (var attribKey in attribs)' by virtue of __pragma__ ('jsiter'), to iterate over the attributes of a bare JavaScript {}
-            upperAttribs [attribKey if  attribKey.startswith ('__') else attribKey.upper ()] = attribs [attribKey]
-            
+        upperAttribs = {
+            attribKey
+            if attribKey.startswith('__')
+            else attribKey.upper(): attribs[attribKey]
+            for attribKey in attribs
+        }
         __pragma__ ('nojsiter')
-            
-        return type.__new__ (meta, name, bases, upperAttribs)
+
+        return type.__new__(cls, name, bases, upperAttribs)
 
 class Uppercaser (metaclass = UppercaserMeta):
     pass

@@ -324,7 +324,7 @@ class Module:
                 message = '\n\tImport error, can\'t find any of:\n\t\t{}\n'.format ('\n\t\t'. join (self.program.searchedModulePaths))
             )
 
-    def generateJavascriptAndPrettyMap (self):
+    def generateJavascriptAndPrettyMap(self):
         utils.log (False, 'Generating code for module: {}\n', self.targetPath)
 
         # Generate target fragments
@@ -348,13 +348,16 @@ class Module:
             for targetLine in instrumentedTargetLines:
                 # The actual splitting
                 sourceLineNrString = targetLine [-sourcemaps.lineNrLength : ]                           # Take the appended line number, e.g. the string '000014'
-                sourceLineNr = int ('1' + sourceLineNrString) - sourcemaps.maxNrOfSourceLinesPerModule  # Turn it into an integer, e.g. 14
                 targetLine = targetLine [ : -sourcemaps.lineNrLength]                                   # Obtain non-instrumented line by removing the appended line number
 
+                sourceLineNr = (
+                    int(f'1{sourceLineNrString}')
+                    - sourcemaps.maxNrOfSourceLinesPerModule
+                )
                 # Only append non-emptpy statements and their number info
-                if targetLine.strip () != ';':                                                          # If the non-instrumented line isn't empty
-                    if self.generator.allowDebugMap:                                                    # If annotations comments have to be prepended
-                        targetLine = '/* {} */ {}'.format (sourceLineNrString, targetLine)              # Prepend them
+                if targetLine.strip () != ';':                                              # If the non-instrumented line isn't empty
+                    if self.generator.allowDebugMap:                                    # If annotations comments have to be prepended
+                        targetLine = f'/* {sourceLineNrString} */ {targetLine}'
                     targetLines.append (targetLine)                                                     # Add the target line, with or without prepended annotation comment
 
                     # Store line nrs for source map
@@ -376,8 +379,8 @@ class Module:
         with tokenize.open (self.sourcePath) as sourceFile:
             self.targetCode = sourceFile.read ()
 
-    def parse (self):
-        def pragmasFromComments (sourceCode):
+    def parse(self):
+        def pragmasFromComments(sourceCode):
             # This function turns comment-like pragma's into regular ones, both for multi-line and single-line pragma's
             # It changes rather than regenerates the sourcecode, since tokenize/untokenize will mess up formatting
             # Single line pragma's are always comment-like and will be turned into multi-line function-like pragma's
@@ -396,16 +399,16 @@ class Module:
                 if tokenType == tokenize.COMMENT:
                     strippedComment = tokenString [1 : ] .lstrip ()
                     if  strippedComment.startswith ('__pragma__'):
-                    
+
                        # Remember line index of multi-line pragma, like: # __pragma__ (...
                         pragmaCommentLineIndices.append (startRowColumn [0] - 1)
                     elif strippedComment.replace (' ', '') .replace ('\t', '') .startswith ('__:'):
-                    
+
                         # Remember line index of single-line pragma, like: <some code> # __: ...
                         shortPragmaCommentLineIndices.append (startRowColumn [0] - 1)
                 if tokenType == tokenize.NAME and tokenString == '__pragma__':
                     pragmaIndex = tokenIndex
-                    
+
                 if tokenIndex - pragmaIndex == 2:
                     pragmaKind = tokenString [1:-1]
                     if pragmaKind == 'ecom':
@@ -415,20 +418,20 @@ class Module:
 
             # Convert original, non-tokenized sourcecode to a list of lines
             sourceLines = sourceCode.split ('\n')
-            
+
             # Use line indices of multi-line function-like ecom / noecom pragma's to transform these lines into executable comment switches
             for ecomPragmaLineIndex in ecomPragmaLineIndices:
                 sourceLines [ecomPragmaLineIndex] = ecom
             for noecomPragmaLineIndex in noecomPragmaLineIndices:
                 sourceLines [noecomPragmaLineIndex] = noecom
-                        
+
             # Use line indices of multi-line comment-like pragma singles to transform these into function-like pragma singles (which often turn out te be part of a matching pair)
             allowExecutableComments = utils.commandArgs.ecom
             for pragmaCommentLineIndex in pragmaCommentLineIndices:
                 indentation, separator, tail = sourceLines [pragmaCommentLineIndex] .partition ('#')
                 pragma, separator, comment = tail.partition ('#')
                 pragma = pragma.replace (' ', '') .replace ('\t', '')
-                
+
                 # Turn appropriate lines into executable comment switches
                 if "('ecom')" in pragma or '("ecom")' in pragma:
                     allowExecutableComments = True
@@ -445,7 +448,7 @@ class Module:
                 strippedHead = head.lstrip ()
                 indent = head [ : len (head) - len (strippedHead)]
                 pragmaName = tail.replace (' ', '') .replace ('\t', '') [3:]
-                
+
                 # Turn appropriate lines into executable comment switches
                 if pragmaName == 'ecom':
                     sourceLines [pragmaCommentLineIndex] = ecom             
@@ -455,7 +458,7 @@ class Module:
                     sourceLines [shortPragmaCommentLineIndex] = '{}__pragma__ (\'{}\'); {}; __pragma__ (\'{}\')' .format (indent, pragmaName, head, pragmaName [2:])    # Correct!
                 else:
                     sourceLines [shortPragmaCommentLineIndex] = '{}__pragma__ (\'{}\'); {}; __pragma__ (\'no{}\')' .format (indent, pragmaName, head, pragmaName)
-                    
+
             # Switch executable comments on c.q. off and turn executable comments into normal code lines for Transcrypt (as opposed to CPython)
             uncommentedSourceLines = []
             for sourceLine in sourceLines:
@@ -465,11 +468,16 @@ class Module:
                     allowExecutableComments = False
                 elif allowExecutableComments:
                     lStrippedSourceLine = sourceLine.lstrip ()
-                    if not lStrippedSourceLine [:4] in {"'''?", "?'''", '"""?', '?"""'}:
+                    if lStrippedSourceLine[:4] not in {
+                        "'''?",
+                        "?'''",
+                        '"""?',
+                        '?"""',
+                    }:
                         uncommentedSourceLines.append (sourceLine.replace ('#?', '', 1) if lStrippedSourceLine.startswith ('#?') else sourceLine)
                 else:
                     uncommentedSourceLines.append (sourceLine)
-                    
+
             # Return joined lines, to be used for parsing
             return '\n'.join (uncommentedSourceLines)
 
@@ -478,7 +486,7 @@ class Module:
 
             with tokenize.open (self.sourcePath) as sourceFile:
                 self.sourceCode = utils.extraLines + sourceFile.read ()
-                
+
             self.parseTree = ast.parse (pragmasFromComments (self.sourceCode))
 
             for node in ast.walk (self.parseTree):

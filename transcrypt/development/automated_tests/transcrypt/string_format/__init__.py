@@ -37,7 +37,7 @@ def run(autoTester):
     autoTester.check('gen: {:g}'.format(1.123485574))
     autoTester.check('gen: {:.8g}'.format(148560.123485574))
     autoTester.check('gen: {:.4}'.format(1485.1))
-    autoTester.check('gen: {}'.format(1485.1))
+    autoTester.check('gen: 1485.1')
     autoTester.check('gen: {:.8}'.format(1485.1))
     autoTester.check('gen: {:.8g}'.format(1485.1))
 
@@ -47,17 +47,20 @@ def run(autoTester):
     autoTester.check('str: {:*>10}'.format('abc'))
     autoTester.check('{1}{0}{1}'.format('kad', 'abra'))
     autoTester.check('{1}{0!r}{1}'.format('kad', 'abra'))
-    autoTester.check('{} and {}'.format('dog', 'cat'))
+    autoTester.check('dog and cat')
     autoTester.check('{:*^13}'.format('centered'))
 
     a = [15.846, 16.7856, 18.8563]
+
+
 
     class B:
         def __repr__(self):
             return self.prop
 
         def __format__(self, fmt_spec):
-            return fmt_spec + ' ' + self.prop
+            return f'{fmt_spec} {self.prop}'
+
 
     b = B()
     b.prop = 'object attribute'
@@ -68,9 +71,9 @@ def run(autoTester):
 
     autoTester.check('Other:')
 
-    autoTester.check('{}'.format(True))
+    autoTester.check('True')
     autoTester.check('{:*>10}'.format(True))
     autoTester.check('{!r:*^20}'.format(b))
     autoTester.check('{:custom_format}'.format(b))
-    autoTester.check('{}'.format(a))
-    autoTester.check('{}'.format(c))
+    autoTester.check(f'{a}')
+    autoTester.check(f'{c}')

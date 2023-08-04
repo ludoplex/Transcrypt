@@ -21,20 +21,20 @@ class Demo:
         self.newIndex = 0
         self.count = 0
         
-    def serve (self, request, response): 
+    def serve(self, request, response): 
         time.__adapt__ (request)
-    
+
         response.writeHead (200)
-        
+
         print ('Serving page', self.count)
         self.count += 1
-        
+
         while self.newIndex == self.oldIndex:
             self.newIndex = int (Math.random () * len (self.texts))
         self.oldIndex = self.newIndex
-        
-        response.end ('<h1>{}</h1><h1>{}</h1>'.format (
-            self.texts [self.newIndex], time.localtime ()
-        ))
+
+        response.end(
+            f'<h1>{self.texts[self.newIndex]}</h1><h1>{time.localtime()}</h1>'
+        )
 
 demo = Demo (process.argv [2])  #This is where node puts its command line params

@@ -66,20 +66,19 @@ def getFileLocation(ancestor):
         # Group 5 = lineno
         # Group 6 = column number in file
         frameReg = r"([^(]*)\(?([^:]*:)\/{2,3}([^:/]*:?)([^:]*):(\d+):(\d+)"
-        m = None
         __pragma__('js', '{}',
             '''
             var r = new RegExp(frameReg);
             m = r.exec(gpFrame);
             ''')
-        if m:
+        if m := None:
             filepath = m[4]
             # Split the filepath and take the last element
             # to the get filename
             pathParts = filepath.split("/")
             filename = pathParts[len(pathParts)-1]
             lineno = m[5]
-            return( "{}:{}".format(filename, lineno) )
+            return f"{filename}:{lineno}"
         else:
             __pragma__('js', '{}', 'console.log("Failed to Match Frame", gpFrame);')
             return("UNKNOWN:???")
@@ -96,7 +95,6 @@ def getFileLocation(ancestor):
     pathParts = filepath.split('/')
     filename = "/".join(pathParts[-2:])
     return( "%s:%d" % (filename, caller.lineno))
-    __pragma__ ('noskip')
 
 
 
@@ -186,7 +184,7 @@ class AutoTester:
         try:
             return(func())
         except Exception as exc:
-            return (None, "!!!{}".format(str(exc)))
+            return None, f"!!!{str(exc)}"
 
     def checkEval(self, func):
         """ Check the result of the passed function which is
@@ -204,7 +202,7 @@ class AutoTester:
         """ This method is to help manage flow control in unit tests and
         keep all unit tests aligned
         """
-        for i in range(0, count):
+        for _ in range(0, count):
             self.check(val)
 
     def _getTotalErrorCnt(self, testData, refData):
@@ -221,7 +219,7 @@ class AutoTester:
                 errCount+=1
         return(errCount)
 
-    def compare (self):
+    def compare(self):
         # Load the python reference data from the hidden HTML div
         dc = DataConverter()
         self.refDict = dc.getPythonResults()
@@ -233,12 +231,12 @@ class AutoTester:
             try:
                 testData = self.testDict[key]
                 if ( testData is None ):
-                    raise KeyError("No Test Data Module: {}".format(key))
+                    raise KeyError(f"No Test Data Module: {key}")
             except KeyError:
                 # No Test Data found for this key - we will populate with
                 # errors for all ref data
                 self.ui.appendSeqRowName(key, len(refData))
-                for i,(refPos, refItem) in enumerate(refData):
+                for refPos, refItem in refData:
                     self.ui.appendTableResult(key, None, None, refPos, refItem, False)
                 continue
             # know we have testData so let's determine the total number of

@@ -98,9 +98,9 @@ class Turtle:
     def done (self):
         self._flush ()
         
-    def pensize (self, width):
+    def pensize(self, width):
         self._flush ()
-        if width == None:
+        if width is None:
             return self._pensize
         else:
             self._pensize = width
@@ -112,16 +112,10 @@ class Turtle:
         if fillcolor != None:
             self._fillcolor = fillcolor
     
-    def goto (self, x, y = None):
-        if y == None:
-            self._position = x
-        else:
-            self._position = [x, y]
-            
-        self._track.append ('{} {} {}'.format (
-            'L' if self._down else 'M',
-            self._position [0] + _offset [0],
-            self._position [1] + _offset [1])
+    def goto(self, x, y = None):
+        self._position = x if y is None else [x, y]
+        self._track.append(
+            f"{'L' if self._down else 'M'} {self._position[0] + _offset[0]} {self._position[1] + _offset[1]}"
         )
         
     def _moveto (self, x, y = None):
@@ -140,15 +134,11 @@ class Turtle:
     def pos (self):
         return self.position ()
         
-    def distance (self, x, y = None):
-        if y == None:
-            other = x
-        else:
-            other = [x, y]
-            
+    def distance(self, x, y = None):
+        other = x if y is None else [x, y]
         dX = other [0] - self._position [0]
         dY = other [1] - self._position [1]
-        
+
         return Math.sqrt (dX * dX + dY * dY)
             
     def up (self):
@@ -164,44 +154,28 @@ class Turtle:
         delta = [Math.sin (self._heading), Math.cos (self._heading)]
         return [self._position [0] + length * delta [0], self._position [1] + length * delta [1]]
         
-    def forward (self, length):
+    def forward(self, length):
         self._position = self._predict (length)
-        
-        self._track.append ('{} {} {}'.format (
-            'L' if self._down else 'M',
-            self._position [0] + _offset [0],
-            self._position [1] + _offset [1])
+
+        self._track.append(
+            f"{'L' if self._down else 'M'} {self._position[0] + _offset[0]} {self._position[1] + _offset[1]}"
         )
         
     def back (self, length):
         self.forward (-length)
         
-    def circle (self, radius):
+    def circle(self, radius):
         self.left (90)
         opposite = self._predict (2 * (radius + 1) + 1)
         self.right (90)
-    
-        self._track.append ('{} {} {} {} {} {} {} {}'.format (
-            'A',
-            radius,
-            radius,
-            0,
-            1,
-            0,
-            opposite [0] + _offset [0],
-            opposite [1] + _offset [1]
-        ))
-        
-        self._track.append ('{} {} {} {} {} {} {} {}'.format (
-            'A',
-            radius,
-            radius,
-            0,
-            1,
-            0,
-            self._position [0] + _offset [0],
-            self._position [1] + _offset [1]
-        ))
+
+        self._track.append(
+            f'A {radius} {radius} 0 1 0 {opposite[0] + _offset[0]} {opposite[1] + _offset[1]}'
+        )
+
+        self._track.append(
+            f'A {radius} {radius} 0 1 0 {self._position[0] + _offset[0]} {self._position[1] + _offset[1]}'
+        )
         
     def left (self, angle):
         self._heading = (self._heading + Math.PI * angle / 180) % (2 * Math.PI)

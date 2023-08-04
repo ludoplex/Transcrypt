@@ -58,8 +58,7 @@ class RiotTag:
         # making the event system call self's methods:
         handlers = {}
         for ev in lifecycle_ev:
-            f = getattr(self, ev.replace('-', '_'))
-            if f:
+            if f := getattr(self, ev.replace('-', '_')):
                 # this.on('mount', function() {...}):
                 # whats nicer?
                 tag.on(ev, f)
@@ -67,13 +66,13 @@ class RiotTag:
     def pp(self, *msg):
         # color flash in the console. one color per tag instance.
         col_print(
-            #B(self.riot_tag._riot_id),
             L('<', self.my_col(self.node_name, self.my_col), '/> '),
-            M(' '.join([s for s in msg])))
+            M(' '.join(list(msg))),
+        )
 
     def _lifecycle_ev(self, mode):
         if self.debug:
-            self.pp(mode + 'ing')
+            self.pp(f'{mode}ing')
 
     # overwrite these for your specific one:
     def update (self): self._lifecycle_ev('update')

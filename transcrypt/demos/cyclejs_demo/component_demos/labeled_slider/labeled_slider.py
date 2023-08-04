@@ -41,19 +41,26 @@ def LabeledSlider(sources):
                 ) \
             .flatten() \
             .remember() # https://github.com/staltz/xstream/wiki/Migrating-from-RxJS
-                        # all streams are hot, the start with would be forgotten w/o this:
-
-    vdomS = stateS \
-            .map(lambda state: \
-                div('.labeled-slider', [
-                    span('.label',
-                        state.label + ' ' + state.value + state.unit),
-                    input('.slider', {'attrs': {
-                        'type': 'range', 'min': state.min,
-                        'max': state.max, 'value': state.value}}),
-                    ]))
-    sinks = d(DOM=vdomS, value=stateS.map(lambda state: state.value))
-    return sinks
+    vdomS = stateS.map(
+        lambda state: div(
+            '.labeled-slider',
+            [
+                span('.label', f'{state.label} {state.value}{state.unit}'),
+                input(
+                    '.slider',
+                    {
+                        'attrs': {
+                            'type': 'range',
+                            'min': state.min,
+                            'max': state.max,
+                            'value': state.value,
+                        }
+                    },
+                ),
+            ],
+        )
+    )
+    return d(DOM=vdomS, value=stateS.map(lambda state: state.value))
 
 
 def main(sources):
@@ -65,14 +72,22 @@ def main(sources):
 
     def render(v):
         value, child_vdom = v
-        return div([
+        return div(
+            [
                 child_vdom,
-                div({'style': {
-                    'backgroundColor': 'green',
-                    'width': str(value) + 'px',
-                    'height': str(value) + 'px',
-                    'borderRadius': str(value * 0.5) + 'px'
-                    }})])
+                div(
+                    {
+                        'style': {
+                            'backgroundColor': 'green',
+                            'width': f'{str(value)}px',
+                            'height': f'{str(value)}px',
+                            'borderRadius': f'{str(value * 0.5)}px',
+                        }
+                    }
+                ),
+            ]
+        )
+
 
 
     vdomS = xs.combine(child_valueS, child_vdomS).map(log).map(render)

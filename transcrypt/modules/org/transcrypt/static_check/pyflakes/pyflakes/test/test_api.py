@@ -233,9 +233,8 @@ class CheckTests(TestCase):
         _, fpath = tempfile.mkstemp()
         if not hasattr(content, 'decode'):
             content = content.encode('ascii')
-        fd = open(fpath, 'wb')
-        fd.write(content)
-        fd.close()
+        with open(fpath, 'wb') as fd:
+            fd.write(content)
         return fpath
 
     def assertHasErrors(self, path, errorList):
@@ -499,13 +498,11 @@ x = "%s"
         tempdir = tempfile.mkdtemp()
         os.mkdir(os.path.join(tempdir, 'foo'))
         file1 = os.path.join(tempdir, 'foo', 'bar.py')
-        fd = open(file1, 'wb')
-        fd.write("import baz\n".encode('ascii'))
-        fd.close()
+        with open(file1, 'wb') as fd:
+            fd.write("import baz\n".encode('ascii'))
         file2 = os.path.join(tempdir, 'baz.py')
-        fd = open(file2, 'wb')
-        fd.write("import contraband".encode('ascii'))
-        fd.close()
+        with open(file2, 'wb') as fd:
+            fd.write("import contraband".encode('ascii'))
         log = []
         reporter = LoggingReporter(log)
         warnings = checkRecursive([tempdir], reporter)
@@ -579,12 +576,11 @@ class IntegrationTests(TestCase):
         When a Python source file has warnings, the return code is non-zero
         and the warnings are printed to stdout.
         """
-        fd = open(self.tempfilepath, 'wb')
-        fd.write("import contraband\n".encode('ascii'))
-        fd.close()
+        with open(self.tempfilepath, 'wb') as fd:
+            fd.write("import contraband\n".encode('ascii'))
         d = self.runPyflakes([self.tempfilepath])
         expected = UnusedImport(self.tempfilepath, Node(1), 'contraband')
-        self.assertEqual(d, ("%s%s" % (expected, os.linesep), '', 1))
+        self.assertEqual(d, (f"{expected}{os.linesep}", '', 1))
 
     def test_errors(self):
         """
@@ -593,8 +589,7 @@ class IntegrationTests(TestCase):
         printed to stderr.
         """
         d = self.runPyflakes([self.tempfilepath])
-        error_msg = '%s: No such file or directory%s' % (self.tempfilepath,
-                                                         os.linesep)
+        error_msg = f'{self.tempfilepath}: No such file or directory{os.linesep}'
         self.assertEqual(d, ('', error_msg, 1))
 
     def test_readFromStdin(self):
@@ -603,4 +598,4 @@ class IntegrationTests(TestCase):
         """
         d = self.runPyflakes([], stdin='import contraband'.encode('ascii'))
         expected = UnusedImport('<stdin>', Node(1), 'contraband')
-        self.assertEqual(d, ("%s%s" % (expected, os.linesep), '', 1))
+        self.assertEqual(d, (f"{expected}{os.linesep}", '', 1))

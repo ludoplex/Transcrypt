@@ -148,8 +148,7 @@ def getLevelName(level):
     Otherwise, the string "Level %s" % level is returned.
     """
     # See Issues #22386 and #27937 for why it's this way
-    return (_levelToName.get(level) or _nameToLevel.get(level) or
-                    "Level {}".format(level) )
+    return _levelToName.get(level) or _nameToLevel.get(level) or f"Level {level}"
 
 def addLevelName(level, levelName):
     """
@@ -214,10 +213,10 @@ def _checkLevel(level):
         rv = level
     elif str(level) == level:
         if level not in _nameToLevel:
-            raise ValueError("Unknown level: {}".format(level))
+            raise ValueError(f"Unknown level: {level}")
         rv = _nameToLevel[level]
     else:
-        raise TypeError("Level not an integer or a valid string: {}".format(level))
+        raise TypeError(f"Level not an integer or a valid string: {level}")
     return rv
 
 #---------------------------------------------------------------------------
@@ -396,23 +395,18 @@ class LogRecord(object):
             "process"
             ]
 
-        ret = {}
-        for k in keysToPick:
-            if ( k == "name" ):
-                # This is a hack - name seems to be owned by the
-                # class -- and evals to "cls" and the key "name" gets
-                # replaced by the key "py_name" in javascript
-                ret[k] = getattr(self, "py_name", None)
-            else:
-                ret[k] = getattr(self, k, None)
+        ret = {
+            k: getattr(self, "py_name", None)
+            if (k == "name")
+            else getattr(self, k, None)
+            for k in keysToPick
+        }
         ret["message"] = self.getMessage()
         return(ret)
 
 
     def __str__(self):
-        return '<LogRecord: {}, {}, {}, {}, "{}">'.format(
-            self.name, self.levelno,
-            self.pathname, self.lineno, self.msg)
+        return f'<LogRecord: {self.name}, {self.levelno}, {self.pathname}, {self.lineno}, "{self.msg}">'
 
     def __repr__(self):
         return(str(self))
@@ -608,11 +602,9 @@ class Formatter(object):
         """
         ct = self.converter(record.created)
         if datefmt:
-            s = time.strftime(datefmt, ct)
-        else:
-            t = time.strftime(self.default_time_format, ct)
-            s = self.default_msec_format % (t, record.msecs)
-        return s
+            return time.strftime(datefmt, ct)
+        t = time.strftime(self.default_time_format, ct)
+        return self.default_msec_format % (t, record.msecs)
 
     def formatException(self, ei):
         """
@@ -703,10 +695,7 @@ class BufferingFormatter(object):
         Optionally specify a formatter which will be used to format each
         individual record.
         """
-        if linefmt:
-            self.linefmt = linefmt
-        else:
-            self.linefmt = _defaultFormatter
+        self.linefmt = linefmt if linefmt else _defaultFormatter
 
     def formatHeader(self, records):
         """
@@ -726,7 +715,7 @@ class BufferingFormatter(object):
         """
         rv = ""
         if len(records) > 0:
-            rv = rv + self.formatHeader(records)
+            rv += self.formatHeader(records)
             for record in records:
                 rv = rv + self.linefmt.format(record)
                 rv = rv + self.formatFooter(records)
@@ -788,7 +777,7 @@ class Filterer(object):
         """
         Add the specified filter to this handler.
         """
-        if not (filt in self.filters):
+        if filt not in self.filters:
             self.filters.append(filt)
 
     def removeFilter(self, filt):
@@ -812,10 +801,7 @@ class Filterer(object):
         """
         rv = True
         for f in self.filters:
-            if hasattr(f, 'filter'):
-                result = f.filter(record)
-            else:
-                result = f(record) # assume callable - will raise if not
+            result = f.filter(record) if hasattr(f, 'filter') else f(record)
             if not result:
                 rv = False
                 break
@@ -965,10 +951,7 @@ class Handler(Filterer):
         If a formatter is set, use it. Otherwise, use the default formatter
         for the module.
         """
-        if self.formatter:
-            fmt = self.formatter
-        else:
-            fmt = _defaultFormatter
+        fmt = self.formatter if self.formatter else _defaultFormatter
         return fmt.format(record)
 
     def emit(self, record):
@@ -1042,14 +1025,14 @@ class Handler(Filterer):
         You could, however, replace this with a custom handler if you wish.
         The record which was being processed is passed in to this method.
         """
-        if ( raiseExceptions ):
-            raise Exception("Failed to log: {}".format(record))
+        if raiseExceptions:
+            raise Exception(f"Failed to log: {record}")
         else:
             _consoleStream.write("--- Logging Error ---\n")
 
     def __repr__(self):
         level = getLevelName(self.level)
-        return '<{} ({})>'.format(self.__class__.__name__, level)
+        return f'<{self.__class__.__name__} ({level})>'
 
 class StreamHandler(Handler):
     """
@@ -1107,7 +1090,7 @@ class StreamHandler(Handler):
         name = getattr(self.stream, 'name', '')
         if name:
             name += ' '
-        return '<{} {}({})>'.format(self.__class__.__name__, name, level)
+        return f'<{self.__class__.__name__} {name}({level})>'
 
 class FileHandler(StreamHandler):
     """ Handler Class that is suppose to write to disk - we haven't
@@ -1429,31 +1412,7 @@ class Logger(Filterer):
         file name, line number and function name.
         """
         f = currentframe()
-        #On some versions of IronPython, currentframe() returns None if
-        #IronPython isn't run with -X:Frames.
-        # if f is not None:
-        #           f = f.f_back
-
-        rv = "(unknown file)", 0, "(unknown function)", None
-
-        # while hasattr(f, "f_code"):
-        #           co = f.f_code
-        #           filename = os.path.normcase(co.co_filename)
-        #           if filename == _srcfile:
-        #                   f = f.f_back
-        #                   continue
-        #           sinfo = None
-        #           if stack_info:
-        #                   sio = io.StringIO()
-        #                   sio.write('Stack (most recent call last):\n')
-        #                   traceback.print_stack(f, file=sio)
-        #                   sinfo = sio.getvalue()
-        #                   if sinfo[-1] == '\n':
-        #                           sinfo = sinfo[:-1]
-        #                   sio.close()
-        #           rv = (co.co_filename, f.f_lineno, co.co_name, sinfo)
-        #           break
-        return rv
+        return "(unknown file)", 0, "(unknown function)", None
 
     def makeRecord(self, name, level, fn, lno, msg, args, exc_info,
                                  func=None, extra=None, sinfo=None):
@@ -1513,7 +1472,7 @@ class Logger(Filterer):
         """
         _acquireLock()
         try:
-            if not (hdlr in self.handlers):
+            if hdlr not in self.handlers:
                 self.handlers.append(hdlr)
         finally:
             _releaseLock()
@@ -1568,16 +1527,14 @@ class Logger(Filterer):
                 found = found + 1
                 if record.levelno >= hdlr.level:
                     hdlr.handle(record)
-            if not c.propagate:
-                c = None        #break out
-            else:
-                c = c.parent
-        if (found == 0):
-            if lastResort:
+            c = None if not c.propagate else c.parent
+        if lastResort:
+            if (found == 0):
                 if record.levelno >= lastResort.level:
                     lastResort.handle(record)
-            elif raiseExceptions and not self.manager.emittedNoHandlerWarning:
-                _consoleStream.write("No handlers could be found for logger \"{}\"".format(self.name))
+        elif raiseExceptions and not self.manager.emittedNoHandlerWarning:
+            if (found == 0):
+                _consoleStream.write(f'No handlers could be found for logger \"{self.name}\"')
                 self.manager.emittedNoHandlerWarning = True
 
     def getEffectiveLevel(self):
@@ -1623,7 +1580,7 @@ class Logger(Filterer):
 
     def __repr__(self):
         level = getLevelName(self.getEffectiveLevel())
-        return '<{} {} ({})>'.format(self.__class__.__name__, self.name, level)
+        return f'<{self.__class__.__name__} {self.name} ({level})>'
 
 
 class RootLogger(Logger):
@@ -1757,7 +1714,7 @@ class LoggerAdapter(object):
     def __repr__(self):
         logger = self.logger
         level = getLevelName(logger.getEffectiveLevel())
-        return '<{} {} ({})>'.format(self.__class__.__name__, logger.name, level)
+        return f'<{self.__class__.__name__} {logger.name} ({level})>'
 
 root = RootLogger(WARNING)
 Logger.root = root
@@ -1843,7 +1800,7 @@ def basicConfig(**kwargs):
             dfs = kwargs.pop("datefmt", None)
             style = kwargs.pop("style", '{')
             if style not in _STYLES:
-                raise ValueError('Style must be one of: {}'.format(','.join(_STYLES.keys())))
+                raise ValueError(f"Style must be one of: {','.join(_STYLES.keys())}")
             fs = kwargs.pop("format", _STYLES[style][1])
             fmt = Formatter(fs, dfs, style)
             for h in handlers:
@@ -1853,9 +1810,9 @@ def basicConfig(**kwargs):
             level = kwargs.pop("level", None)
             if level is not None:
                 root.setLevel(level)
-            if len(kwargs) > 0:
+            if kwargs:
                 keys = ', '.join(kwargs.keys())
-                raise ValueError('Unrecognised argument(s): {}'.format(keys))
+                raise ValueError(f'Unrecognised argument(s): {keys}')
     finally:
         _releaseLock()
 
@@ -1872,10 +1829,7 @@ def getLogger(name=None):
 
     If no name is specified, return the root logger.
     """
-    if name:
-        return Logger.manager.getLogger(name)
-    else:
-        return root
+    return Logger.manager.getLogger(name) if name else root
 
 __pragma__('kwargs')
 def critical(msg, *args, **kwargs):
@@ -1970,8 +1924,7 @@ def shutdown(handlerList=_handlerList):
         #errors might occur, for example, if files are locked
         #we just ignore them if raiseExceptions is not set
         try:
-            h = wr()
-            if h:
+            if h := wr():
                 try:
                     h.acquire()
                     h.flush()
@@ -2049,7 +2002,6 @@ def captureWarnings(capture):
         if _warnings_showwarning is None:
             _warnings_showwarning = warnings.showwarning
             warnings.setShowWarning(_showwarning)
-    else:
-        if _warnings_showwarning is not None:
-            warnings.setShowWarnings(_warnings_showwarning)
-            _warnings_showwarning = None
+    elif _warnings_showwarning is not None:
+        warnings.setShowWarnings(_warnings_showwarning)
+        _warnings_showwarning = None

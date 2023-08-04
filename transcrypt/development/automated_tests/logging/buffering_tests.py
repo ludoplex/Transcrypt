@@ -10,7 +10,7 @@ class DemoBufferingFormatter(logging.BufferingFormatter):
     def formatHeader( self, records):
         """
         """
-        return "------ {} Records ------\n".format(len(records))
+        return f"------ {len(records)} Records ------\n"
 
 
 class BetterBufferingHandler(hdlr.MemoryHandler):
@@ -21,11 +21,10 @@ class BetterBufferingHandler(hdlr.MemoryHandler):
         self.acquire()
         try:
             if self.target:
-                if self.formatter:
-                    aggregate = self.formatter.format(self.buffer)
-                    self.target.handle(aggregate)
-                else:
+                if not self.formatter:
                     raise NotImplementedError()
+                aggregate = self.formatter.format(self.buffer)
+                self.target.handle(aggregate)
             self.buffer = []
         except Exception:
             raise

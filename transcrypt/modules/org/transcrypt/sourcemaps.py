@@ -21,10 +21,10 @@ maxNrOfSourceLinesPerModule = 1000000
 # Tools to encode and decode numbers as base 64 variable length quantities
 
 class Base64VlqConverter:
-    def __init__ (self):
+    def __init__(self):
         self.encoding = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'  # Forward lookup table, from index to character, 64 symbols in total
-        self.decoding = dict ((char, i) for i, char in enumerate (self.encoding))           # Enable reverse lookup, so from character to index
-        
+        self.decoding = {char: i for i, char in enumerate (self.encoding)}
+
         self.prefabSize = 256                                                               # The 256 most used vlq's are prefabricated
         self.prefab = [self.encode ([i], True) for i in range (self.prefabSize)]
     
@@ -229,21 +229,21 @@ class SourceMapper: # There's only one sourcemapper needed to generate all maps 
             self.dumpMap (mappings, infix, '.py')
             self.dumpDeltaMap (deltaMappings, infix)
             
-    def dumpMap (self, mappings, infix, sourceExtension):
+    def dumpMap(self, mappings, infix, sourceExtension):
         with utils.create (f'{self.targetDir}/{self.moduleName}{infix}.map_dump') as mapdumpFile:
             mapdumpFile.write (f'mapVersion: {mapVersion}\n\n')
             mapdumpFile.write (f'targetPath: {self.moduleName}.js\n\n')
             mapdumpFile.write (f'sourcePath: {self.moduleName}{infix}{sourceExtension}\n\n')
             mapdumpFile.write ('mappings:\n')
             for mapping in mappings:
-                mapdumpFile.write ('\t{}\n'.format (mapping))
+                mapdumpFile.write(f'\t{mapping}\n')
                 
-    def dumpDeltaMap (self, deltaMappings, infix):
+    def dumpDeltaMap(self, deltaMappings, infix):
         with utils.create (f'{self.targetDir}/{self.moduleName}{infix}.delta_map_dump') as deltaMapdumpFile:
             for group in deltaMappings:
                 deltaMapdumpFile.write ('(New group) ')
                 for segment in group:
-                    deltaMapdumpFile.write ('Segment: {}\n'.format (segment))
+                    deltaMapdumpFile.write(f'Segment: {segment}\n')
                                 
     def generateMultilevelMap (self):
         utils.log (False, 'Saving multi-level sourcemap in: {}\n') # !!!     , 'self.mapPath')

@@ -3,7 +3,7 @@ from math import pow
 
 def fibonacci():
     a, b = 0, 1
-    for i in range (10):
+    for _ in range (10):
         yield a
         a, b = b, a + b
 

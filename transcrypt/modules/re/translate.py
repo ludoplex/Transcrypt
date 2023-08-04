@@ -31,27 +31,19 @@ class Group:
 def generateGroupSpans(tokens):
     groupInfo = []
 
-    idx = 0
-    for token in tokens:
+    for idx, token in enumerate(tokens):
         if token.name.startswith('('):
             groupInfo.append(Group(idx, None, token.name))
         elif token.name == ')':
             for group in reversed(groupInfo):
                 if group.end is None:
                     group.end = idx
-        idx += 1
     return groupInfo
 
 
 def countCaptureGroups(tokens):
     groupInfo = generateGroupSpans(tokens)
-    count = 0
-
-    for token in tokens:
-        if token.name == '(':
-            count += 1
-
-    return count
+    return sum(1 for token in tokens if token.name == '(')
 
 
 # Get the `Group` for a capture group with a given id or name.
@@ -92,13 +84,17 @@ def splitIfElse(tokens, namedGroups):
             captureGroup = getCaptureGroup(groupInfo, namedGroups, ref)
             captureGroupModifier = tokens[captureGroup.end + 1]
 
-            if captureGroupModifier.name in ['?', '*'] or captureGroupModifier.name.startswith('{0,'):
+            if (
+                captureGroupModifier.name in ['?', '*']
+                or captureGroupModifier.name not in ['?', '*']
+                and captureGroupModifier.name.startswith('{0,')
+            ):
                 if captureGroupModifier.name == '?':
                     iff[captureGroup.end + 1] = None
                 elif captureGroupModifier.name == '*':
                     iff[captureGroup.end + 1] = Token('+')
                 elif captureGroupModifier.name.startswith('{0,'):
-                    iff[captureGroup.end + 1].name[0:3] = '{1,'
+                    iff[captureGroup.end + 1].name[:3] = '{1,'
                 els[captureGroup.end + 1] = None
 
                 hasElse = False
@@ -118,9 +114,7 @@ def splitIfElse(tokens, namedGroups):
                 els[captureGroup.start:captureGroup.end + 1] = [Token('('), Token(')')]
                 iff.remove(None)
                 els.remove(None)
-                variants.append(iff)
-                variants.append(els)
-
+                variants.extend((iff, els))
             else:  # the easy case - 'else' is impossible
                 pastIff = False
                 for idx in range(conStart, conEnd):
@@ -155,10 +149,7 @@ class Token:
         return self.name
 
     def resolve(self):
-        paras = ''
-        for para in self.paras:
-            paras += str(para)
-
+        paras = ''.join(str(para) for para in self.paras)
         return self.name + paras
 
 
@@ -208,13 +199,12 @@ def shiftReduce(stack, queue, namedGroups, flags):
         if s0.name == ',' and len(s1.paras) == 0:
             s1.paras.append('0')
             s1.paras.append(',')
+        elif s0.name == '}':
+            s1.paras.append('}')
+            s1.name = s1.resolve()
+            s1.paras = []
         else:
-            if s0.name == '}':
-                s1.paras.append('}')
-                s1.name = s1.resolve()
-                s1.paras = []
-            else:
-                s1.paras.append(s0.name)
+            s1.paras.append(s0.name)
 
         stack = stack[:-1]
 
@@ -225,7 +215,7 @@ def shiftReduce(stack, queue, namedGroups, flags):
         stack[-2:] = [Token('(?')]
 
     elif s1.name in ['*', '+', '?'] and s0.name == '?':
-        stack[-2:] = [Token(s1.name + '?')]
+        stack[-2:] = [Token(f'{s1.name}?')]
 
     elif s1.isModeGroup and s0.name == ')':
         stack = stack[:-2]
@@ -254,7 +244,7 @@ def shiftReduce(stack, queue, namedGroups, flags):
             if s0.name == '(':
                 s0.name = '<'
 
-            newToken = Token('(?' + s0.name)
+            newToken = Token(f'(?{s0.name}')
             stack[-2:] = [newToken]
 
     elif s1.name == '(?<':
@@ -266,7 +256,7 @@ def shiftReduce(stack, queue, namedGroups, flags):
             stack.pop()
 
     elif s1.name == '(?P':
-        stack[-2:] = [Token('(?P' + s0.name)]
+        stack[-2:] = [Token(f'(?P{s0.name}')]
 
     elif s1.name == '(?P<':
         if s0.name == '>':
@@ -288,11 +278,7 @@ def shiftReduce(stack, queue, namedGroups, flags):
             stack.pop()
 
     elif s1.name == '(?#':
-        if s0.name == ')':
-            stack = stack[:-2]
-        else:
-            stack = stack[:-1]
-
+        stack = stack[:-2] if s0.name == ')' else stack[:-1]
     else:
         stack, queue, done = shift(stack, queue)
 
@@ -307,7 +293,7 @@ def translate(rgx):
     queue = list(rgx)
 
     flags = 0
-    namedGroups = dict()
+    namedGroups = {}
 
     nloop = 0
 

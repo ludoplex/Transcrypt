@@ -28,4 +28,6 @@ class Test(object):
             console.log('Pass: {}  { {} == {} }'.format(self.title, expected_value, self.result))
         else:
             console.warn('Fail: {}  { {} == {} }'.format(self.title, expected_value, self.result))
-            console.error('Function did not return correct value. Expected {}, but got {}'.format(expected_value, self.result))
+            console.error(
+                f'Function did not return correct value. Expected {expected_value}, but got {self.result}'
+            )

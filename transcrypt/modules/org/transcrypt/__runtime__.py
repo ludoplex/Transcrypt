@@ -27,13 +27,13 @@ class Exception (BaseException):
             self.stack = 'No stack trace available'
     #__pragma__ ('nokwargs')
         
-    def __repr__ (self):
+    def __repr__(self):
         if len (self.__args__) > 1:
-            return '{}{}'.format (self.__class__.__name__, repr (tuple (self.__args__)))
+            return f'{self.__class__.__name__}{repr(tuple(self.__args__))}'
         elif len (self.__args__):
-            return '{}({})'.format (self.__class__.__name__, repr (self.__args__ [0]))        
+            return f'{self.__class__.__name__}({repr(self.__args__[0])})'
         else:
-            return '{}()'.format (self.__class__.__name__)
+            return f'{self.__class__.__name__}()'
             
     def __str__ (self):
         if len (self.__args__) > 1:
@@ -111,12 +111,10 @@ def __sort__ (iterable, key = None, reverse = False):               # Used by py
     if reverse:
         iterable.reverse ()
         
-def sorted (iterable, key = None, reverse = False):
-    if type (iterable) == dict:
-        result = copy (iterable.keys ()) 
-    else:       
-        result = copy (iterable)
-        
+def sorted(iterable, key = None, reverse = False):
+    result = (
+        copy(iterable.keys()) if type(iterable) == dict else copy(iterable)
+    )
     __sort__ (result, key, reverse)
     return result
 
@@ -126,8 +124,8 @@ def map (func, iterable):
     return [func (item) for item in iterable]
 
 
-def filter (func, iterable):
-    if func == None:
+def filter(func, iterable):
+    if func is None:
         func = bool
     return [item for item in iterable if func (item)]
     
@@ -137,8 +135,8 @@ def divmod (n, d):
 #__pragma__ ('ifdef', '__complex__')
 
 class complex:
-    def __init__ (self, real, imag = None):
-        if imag == None:
+    def __init__(self, real, imag = None):
+        if imag is None:
             if type (real) == complex:
                 self.real = real.real
                 self.imag = real.imag
@@ -174,15 +172,14 @@ class complex:
     def __rmul__ (self, real):  # real + comp -> comp.__rmul__ (real)
         return complex (self.real * real, self.imag * real)
         
-    def __div__ (self, other):
+    def __div__(self, other):
         if __typeof__ (other) is 'number':
             return complex (self.real / other, self.imag / other)
-        else:
-            denom = other.real * other.real + other.imag * other.imag
-            return complex (
-                (self.real * other.real + self.imag * other.imag) / denom,
-                (self.imag * other.real - self.real * other.imag) / denom
-            )
+        denom = other.real * other.real + other.imag * other.imag
+        return complex (
+            (self.real * other.real + self.imag * other.imag) / denom,
+            (self.imag * other.real - self.real * other.imag) / denom
+        )
         
     def __rdiv__ (self, real):  # real / comp -> comp.__rdiv__ (real)
         denom = self.real * self.real
@@ -209,8 +206,8 @@ class complex:
     def __rsub__ (self, real):  # real - comp -> comp.__rsub__ (real)
         return complex (real - self.real, -self.imag)
         
-    def __repr__ (self):
-        return '({}{}{}j)'.format (self.real, '+' if self.imag >= 0 else '', self.imag)
+    def __repr__(self):
+        return f"({self.real}{'+' if self.imag >= 0 else ''}{self.imag}j)"
             
     def __str__ (self):
         return __repr__ (self) [1 : -1]
@@ -264,17 +261,19 @@ class __Terminal__:
         
     #__pragma__ ('kwargs')
         
-    def print (self, *args, sep = ' ', end = '\n'):
-        self.buffer = '{}{}{}'.format (self.buffer, sep.join ([str (arg) for arg in args]), end) [-4096 : ] 
-        
+    def print(self, *args, sep = ' ', end = '\n'):
+        self.buffer = f'{self.buffer}{sep.join([str(arg) for arg in args])}{end}'[
+            -4096:
+        ] 
+
         if self.element:
             self.element.innerHTML = self.buffer.replace ('\n', '<br>') .replace (' ', '&nbsp')
             self.element.scrollTop = self.element.scrollHeight
         else:
             console.log (sep.join ([str (arg) for arg in args]))
         
-    def input (self, question):
-        self.print ('{}'.format (question), end = '')
+    def input(self, question):
+        self.print(f'{question}', end = '')
         answer = window.prompt ('\n'.join (self.buffer.split ('\n') [-8:]))
         self.print (answer)
         return answer

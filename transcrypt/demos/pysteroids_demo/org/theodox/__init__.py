@@ -79,9 +79,9 @@ class Vector:
         return sum(Vector.mul(left, right))
 
     @classmethod
-    def norm_dot(Vector, left, right):
-        left = Vector(*left).normalized()
-        right = Vector(*right).normalized()
+    def norm_dot(cls, left, right):
+        left = cls(*left).normalized()
+        right = cls(*right).normalized()
 
-        return sum(Vector.mul(left, right))
+        return sum(cls.mul(left, right))
 

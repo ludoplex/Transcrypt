@@ -44,7 +44,7 @@ __now = __new__(Date())
 __weekdays = []
 __weekdays_long = []
 __d = __new__(Date(1467662339080)) # a monday
-for i in range(7):
+for _ in range(7):
     for l, s in (__weekdays, 'short'), (__weekdays_long, 'long'):
         l.append(__d.toLocaleString(__language,
                                         {'weekday': s}).lower())
@@ -55,7 +55,7 @@ for i in range(7):
 __months = []
 __months_long = []
 __d = __new__(Date(946681200000.0)) # 1.1.2000
-for i in range(12):
+for _ in range(12):
     for l, s in ((__months, 'short'), (__months_long, 'long')):
         l.append(__d.toLocaleString(__language,
                                         {'month': s}).lower())
@@ -86,39 +86,36 @@ def _lsplit(s, sep, maxsplit):
 
 def _local_time_tuple(jd):
     """ jd: javascript Date object, from unixtimestamp """
-    res =  ( jd.getFullYear()
-            ,jd.getMonth() + 1 # zero based
-            ,jd.getDate()
-            ,jd.getHours()
-            ,jd.getMinutes()
-            ,jd.getSeconds()
-            ,jd.getDay() - 1 if jd.getDay() > 0 else 6
-            ,_day_of_year(jd, True)
-            ,_daylight_in_effect(jd)
-            ,jd.getMilliseconds() # not in use by the pub API
-           )
-    return res
+    return (
+        jd.getFullYear(),
+        jd.getMonth() + 1,
+        jd.getDate(),
+        jd.getHours(),
+        jd.getMinutes(),
+        jd.getSeconds(),
+        jd.getDay() - 1 if jd.getDay() > 0 else 6,
+        _day_of_year(jd, True),
+        _daylight_in_effect(jd),
+        jd.getMilliseconds(),
+    )
 
 def _utc_time_tuple(jd):
     """ jd: javascript Date object, from unixtimestamp """
-    res =  ( jd.getUTCFullYear()
-            ,jd.getUTCMonth() + 1 # zero based
-            ,jd.getUTCDate()
-            ,jd.getUTCHours()
-            ,jd.getUTCMinutes()
-            ,jd.getUTCSeconds()
-            ,jd.getUTCDay() - 1
-            ,_day_of_year(jd, False)
-            ,0 # is dst for utc: 0
-            ,jd.getUTCMilliseconds()
-           )
-    return res
+    return (
+        jd.getUTCFullYear(),
+        jd.getUTCMonth() + 1,
+        jd.getUTCDate(),
+        jd.getUTCHours(),
+        jd.getUTCMinutes(),
+        jd.getUTCSeconds(),
+        jd.getUTCDay() - 1,
+        _day_of_year(jd, False),
+        0,
+        jd.getUTCMilliseconds(),
+    )
 
 def _day_of_year(jd, local):
-    # check if jd hours are ahead of UTC less than the offset to it:
-    day_offs = 0
-    if jd.getHours() + jd.getTimezoneOffset() * 60 / 3600 < 0:
-        day_offs = -1
+    day_offs = -1 if jd.getHours() + jd.getTimezoneOffset() * 60 / 3600 < 0 else 0
     was = jd.getTime()
     cur = jd.setHours(23)
     jd.setUTCDate(1)
@@ -133,11 +130,9 @@ def _day_of_year(jd, local):
         res += day_offs
 
     if res == 0:
-        res = 365
         jd.setTime(jd.getTime() - 86400)
         last_year = jd.getUTCFullYear()
-        if _is_leap(last_year):
-            res = 366
+        res = 366 if _is_leap(last_year) else 365
     jd.setTime(was)
     return res
 
@@ -174,17 +169,11 @@ def _daylight(t):
     year of t:
     """
     jj = __jan_jun_tz(t)
-    if jj[0] != jj[1]:
-        # daylight saving is DEFINED, since there's a difference in tz offsets
-        # in jan and jun, in the year of t:
-        return 1
-    return 0
+    return 1 if jj[0] != jj[1] else 0
 
 def _daylight_in_effect(t):
     jj = __jan_jun_tz(t)
-    if min(jj[0], jj[1]) == t.getTimezoneOffset():
-        return 1
-    return 0
+    return 1 if min(jj[0], jj[1]) == t.getTimezoneOffset() else 0
 
 def _timezone(t):
     jj = __jan_jun_tz(t)
@@ -206,9 +195,7 @@ def _tzname(t):
     cn = __tzn(t)
     ret = [cn, cn]
     jj = __jan_jun_tz(t, __tzn)
-    ind = 0
-    if not _daylight_in_effect(t):
-        ind = 1
+    ind = 1 if not _daylight_in_effect(t) else 0
     for i in jj:
         if i != cn:
             ret[ind] = i
@@ -292,10 +279,7 @@ def gmtime(seconds, localtime):
         seconds = time()
     millis = seconds * 1000
     __date.setTime(millis)
-    if localtime:
-        t = _local_time_tuple(__date)
-    else:
-        t = _utc_time_tuple(__date)
+    t = _local_time_tuple(__date) if localtime else _utc_time_tuple(__date)
     return t[:9]
 
 # ----------------------------------------------------------------------------
@@ -380,7 +364,7 @@ def strptime(string, format):
                 lv = [ts, '']
         else:
             lv = _lsplit(ts, sep, 1)
-        if d == None:
+        if d is None:
             ts = lv[1]
             continue
         ts, dir_val[d] = lv[1], lv[0]
@@ -414,26 +398,26 @@ def strptime(string, format):
         if d == 'a':
             # funny. the weekday is only set but does not override %d.
             # -> produces impossible dates but well its how py does it:
-            if not v in __weekdays:
+            if v not in __weekdays:
                 raise ValueError('Weekday unknown in your locale')
             have_weekday = True
             t[6] = __weekdays.index(v)
 
         elif d == 'A':
-            if not v in __weekdays_long:
+            if v not in __weekdays_long:
                 raise ValueError('Weekday unknown in your locale')
             have_weekday = True
             t[6] = __weekdays_long.index(v)
 
         elif d == 'b':
             # month short. overruled by m if present
-            if not v in __months:
+            if v not in __months:
                 raise ValueError('Month unknown in your locale')
             t[1] = __months.index(v) + 1
 
         elif d == 'B':
             # month long. overruled by m if present
-            if not v in __months_long:
+            if v not in __months_long:
                 raise ValueError('Month unknown in your locale')
             t[1] = __months_long.index(v) + 1
 
@@ -447,8 +431,7 @@ def strptime(string, format):
             if v == 12:
                 v = 0
             elif v > 12:
-                raise ValueError("time data '" + string + \
-                        "' does not match format '" + format + "'")
+                raise ValueError(f"time data '{string}' does not match format '{format}'")
             if ampm == 'pm':
                 v += 12
             t[__lu['H']] = v
@@ -476,17 +459,15 @@ def strptime(string, format):
 def strftime(format, t):
     def zf2(v):
         ''' zfill missing '''
-        if v < 10:
-            return '0' + str(v)
-        return v
+        return f'0{str(v)}' if v < 10 else v
 
     if not t:
         t = localtime()
 
     f = format
     for d in __lu.keys():
-        k = '%' + d
-        if not k in f:
+        k = f'%{d}'
+        if k not in f:
             continue
         v = zf2(t[__lu[d]])
         f = f.replace(k, v)
@@ -496,13 +477,10 @@ def strftime(format, t):
         if pos == 1:
             p = p -1
         v = l[p].capitalize()
-        f = f.replace('%' + d, v)
+        f = f.replace(f'%{d}', v)
 
     if '%p' in f:
-        if t[3] > 11:
-            ap = 'PM'
-        else:
-            ap = 'AM'
+        ap = 'PM' if t[3] > 11 else 'AM'
         f = f.replace('%p', ap)
 
     if '%y' in f:

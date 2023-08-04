@@ -9,17 +9,21 @@ def run(autoTester):
     # test ç and C+◌̧
     autoTester.check(normalize('NFC', 'c' + '\u0327'))
     autoTester.check(normalize('NFC', '\u00e7'))
-    autoTester.check((normalize('NFC', 'c' + '\u0327') == normalize('NFC', '\u00e7')) == True)
+    autoTester.check(
+        normalize('NFC', 'c' + '\u0327') == normalize('NFC', '\u00e7')
+    )
 
     # test q+◌̇+◌̣ and q+◌̣+◌̇
     autoTester.check(normalize('NFC', 'q\u0307\u0323'))
     autoTester.check(normalize('NFC', 'q\u0323\u0307'))
-    autoTester.check((normalize('NFC', 'q\u0323\u0307') == normalize('NFC', 'q\u0307\u0323')) == True)
+    autoTester.check(
+        normalize('NFC', 'q\u0323\u0307') == normalize('NFC', 'q\u0307\u0323')
+    )
 
     # test 가 and ᄀ+ᅡ
     autoTester.check(normalize('NFC', '가'))
     autoTester.check(normalize('NFC', 'ᄀ' + 'ᅡ'))
-    autoTester.check((normalize('NFC', '가') == normalize('NFC', 'ᄀ' + 'ᅡ')) == True)
+    autoTester.check(normalize('NFC', '가') == normalize('NFC', 'ᄀ' + 'ᅡ'))
 
     # test Ω
     autoTester.check(normalize('NFC', 'Ω'))
@@ -30,17 +34,21 @@ def run(autoTester):
     # test ç and C+◌̧
     autoTester.check(normalize('NFD', 'c' + '\u0327'))
     autoTester.check(normalize('NFD', '\u00e7'))
-    autoTester.check((normalize('NFD', 'c' + '\u0327') == normalize('NFD', '\u00e7')) == True)
+    autoTester.check(
+        normalize('NFD', 'c' + '\u0327') == normalize('NFD', '\u00e7')
+    )
 
     # test q+◌̇+◌̣ and q+◌̣+◌̇
     autoTester.check(normalize('NFD', 'q\u0307\u0323'))
     autoTester.check(normalize('NFD', 'q\u0323\u0307'))
-    autoTester.check((normalize('NFD', 'q\u0323\u0307') == normalize('NFD', 'q\u0307\u0323')) == True)
+    autoTester.check(
+        normalize('NFD', 'q\u0323\u0307') == normalize('NFD', 'q\u0307\u0323')
+    )
 
     # test 가 and ᄀ+ᅡ
     autoTester.check(normalize('NFD', '가'))
     autoTester.check(normalize('NFD', 'ᄀ' + 'ᅡ'))
-    autoTester.check((normalize('NFD', '가') == normalize('NFD', 'ᄀ' + 'ᅡ')) == True)
+    autoTester.check(normalize('NFD', '가') == normalize('NFD', 'ᄀ' + 'ᅡ'))
 
     # test Ω
     autoTester.check(normalize('NFD', 'Ω'))

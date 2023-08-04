@@ -77,11 +77,7 @@ def checkPath(filename, reporter=None):
         # versions of python it's smarter, and we want binary mode to give
         # compile() the best opportunity to do the right thing WRT text
         # encodings.
-        if sys.version_info < (2, 7):
-            mode = 'rU'
-        else:
-            mode = 'rb'
-
+        mode = 'rU' if sys.version_info < (2, 7) else 'rb'
         with open(filename, mode) as f:
             codestr = f.read()
         if sys.version_info < (2, 7):
@@ -124,10 +120,9 @@ def checkRecursive(paths, reporter):
         will be reported to.
     @return: The number of warnings found.
     """
-    warnings = 0
-    for sourcePath in iterSourceCode(paths):
-        warnings += checkPath(sourcePath, reporter)
-    return warnings
+    return sum(
+        checkPath(sourcePath, reporter) for sourcePath in iterSourceCode(paths)
+    )
 
 
 def _exitOnSignal(sigName, message):

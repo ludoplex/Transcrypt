@@ -78,12 +78,12 @@ def run(test):
 
     # This message should generate
     warnings.warn_explicit(
-        msgStr + " blarg", UserWarning, "basic_tests.py", 57, "asdf", reg
+        f"{msgStr} blarg", UserWarning, "basic_tests.py", 57, "asdf", reg
     )
 
     # this message should not generate
     warnings.warn_explicit(
-        msgStr + " blarg", UserWarning, "basic_tests.py", 57, "asdf", reg
+        f"{msgStr} blarg", UserWarning, "basic_tests.py", 57, "asdf", reg
     )
 
 
@@ -118,8 +118,12 @@ def run(test):
     # @note- this message should not be generated
     for i in range(0,10):
         warnings.warn_explicit(
-            msg, RuntimeWarning, "basic_tests.py", 102+i,
-            "qwerqwer" + str(i), reg
+            msg,
+            RuntimeWarning,
+            "basic_tests.py",
+            102 + i,
+            f"qwerqwer{str(i)}",
+            reg,
         )
 
     warnings.filterwarnings("always", message = "asdf", category=DeprecationWarning)

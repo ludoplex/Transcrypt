@@ -22,8 +22,8 @@ josh.forward (length / 4)
 josh.right (90)
 josh.down ()
 
-for i in range (3):
+for _ in range (3):
     josh.right (120)
     draw (length)
-    
+
 josh.done ()

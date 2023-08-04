@@ -9,35 +9,35 @@ class ContextManagerExample:
     def __exit__ (self, *args):
         self.counter += 99
 
-def run (autoTester):
+def run(autoTester):
 
     # General control structure tests
 
     for index in range (10):
         autoTester.check (index)
-        
+
     for index in range (8, 16):
         autoTester.check (index)
-        
+
     for index in range (8, 16, 2):
         autoTester.check (index)
-        
+
     for index in range (10, 0, -1):
         autoTester.check (index)
-        
+
     for index in range (16, 8, -2):
         autoTester.check (index)
-        
+
     for animal in ('cat', 'dog', 'turtle', 'goldfish'):
         autoTester.check (animal)
 
-    for index, square in enumerate ([x * x for x in range (10) if x % 2]):
+    for square in [x * x for x in range (10) if x % 2]:
         for y in (1, 2, 3):
             for z in (10, 20, 30):
                 autoTester.check (square + y, z )
 
     vehicles = ['bike', 'train', 'boat', 'car', 'plane', 'bus']
-                
+
     for doBreak in (False, True):
         for doContinue in (False, True):
             for index in range (10):
@@ -50,7 +50,7 @@ def run (autoTester):
                         continue
                 else:
                     autoTester.check ('noBreak2')
-                    
+
                 if doBreak and index == 5:
                     autoTester.check ('break')
                     break
@@ -59,7 +59,7 @@ def run (autoTester):
                     continue
             else:
                 autoTester.check ('noBreak')
-                
+
             index = 0
             while index < len (vehicles) and vehicles [index] != 'bus':
                 autoTester.check (index, vehicles [index])
@@ -73,24 +73,24 @@ def run (autoTester):
                 index += 1
             else:
                 autoTester.check ('noBreakWhile')
-                
+
         for vehicle in vehicles:
             if vehicle == 'bike':
                 autoTester.check ('netherlands')
-            elif vehicle == 'car':
-                autoTester.check ('america')
             elif vehicle == 'boat':
                 autoTester.check ('oceania')
+            elif vehicle == 'car':
+                autoTester.check ('america')
             else:
                 autoTester.check ('anywhere') 
-                
+
     # Context manager tests
 
     externalCounter1 = 0
     with ContextManagerExample () as contextManagerExample1:
         externalCounter1 += 1
     autoTester.check ('ctx1', contextManagerExample1.counter, externalCounter1)
-    
+
     externalCounter2 = 0
     with ContextManagerExample () as contextManagerExample2:
         externalCounter2 += 1
@@ -115,9 +115,7 @@ def run (autoTester):
             with ContextManagerExample () as contextManagerExample5:
                 externalCounter5 += 1
                 contextManagerExample5.counter += 100
-                raise Exception ()    
-                externalCounter5 += 2
-                contextManagerExample5.counter += 200  
+                raise Exception ()
             externalCounter4 += 2
             contextManagerExample4.counter += 200
     except Exception as exception:
@@ -127,11 +125,11 @@ def run (autoTester):
         autoTester.check ('ctx4', contextManagerExample4.counter, externalCounter4)
 
     # Multiple context managers in one clause
-    
+
     # $$$ The new parsers seems to treat them more like separate context managers.
     # $$$ Or maybe it's a command line switch.
-    
-    
+
+
     iterationCount = 0
     with ContextManagerExample () as contextManagerExample5, ContextManagerExample () as contextManagerExample6:
         iterationCount += 1
