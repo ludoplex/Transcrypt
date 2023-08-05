@@ -128,19 +128,12 @@ class CommandArgs:
         
 commandArgs = CommandArgs ()
    
-def create (path, binary = False):
+def create(path, binary = False):
     for i in range (10):
         try:
             os.makedirs (os.path.dirname (path), exist_ok = True)
-            
-            if binary:
-                return open (path, 'wb')
-            else:
-                return open (path, 'w', encoding = 'utf-8')
-                
-            if i > 0:
-                log (True, f'Created {path} at attempt {i + 1}')
-                
+
+            return open (path, 'wb') if binary else open (path, 'w', encoding = 'utf-8')
         except:
             time.sleep (0.5)
     else:
@@ -199,7 +192,7 @@ class Error (Exception):
         if not self.message:
             self.message = message
             
-    def __str__ (self):
+    def __str__(self):
         result = 'Error while compiling (offending file last):'
 
         # Successively report each module in the import trail, "oldest" first, except the one that caused the error
@@ -208,14 +201,14 @@ class Error (Exception):
                 sourcePath = importRecord [0] .sourcePath
             except:
                 sourcePath = '<unknown>'
-            result += '\n\tFile \'{}\', line {}, at import of:'.format (sourcePath, importRecord [1])
-        
+            result += f"\n\tFile \'{sourcePath}\', line {importRecord[1]}, at import of:"
+
         # After that, report the module and line that caused the error
 #        result += '\n\tFile \'{}\', line {}, namely:'.format (str (program.importStack [-1][0] .sourcePath), self.lineNr)
-        result += '\n\tFile \'{}\', line {}, namely:'.format (str (program.importStack [-1][0] .name), self.lineNr)
-        
+        result += f"\n\tFile \'{str(program.importStack[-1][0].name)}\', line {self.lineNr}, namely:"
+
         # And, lastly, report the error message
-        result += '\n\t{}'.format (self.message)
+        result += f'\n\t{self.message}'
         return result
         
 def enhanceException (exception, **kwargs):
@@ -241,7 +234,7 @@ def enhanceException (exception, **kwargs):
 
     raise result from None
         
-def digestJavascript (code, symbols, mayStripComments, mayRemoveAnnotations, refuseIfAppearsMinified = False):
+def digestJavascript(code, symbols, mayStripComments, mayRemoveAnnotations, refuseIfAppearsMinified = False):
     '''
     - Honor ifdefs
     - Strip comments if allowed by command line switch AND indicated by pragma
@@ -250,30 +243,30 @@ def digestJavascript (code, symbols, mayStripComments, mayRemoveAnnotations, ref
 
     if refuseIfAppearsMinified and code [0] != '/':
         return None
-    
+
     stripComments = False
-        
+
     def stripSingleLineComments (line):
         pos = line.find ('//')
         return (line if pos < 0 else line [ : pos]) .rstrip ()
 
     passStack = []
 
-    def passable (targetLine):        
+    def passable(targetLine):    
         # Has to count, since comments may be inside ifdefs
-        
+
         nonlocal stripComments
-        
-        def __pragma__ (name, *args):   # Will be called below by executing the stripped line of source code
+
+        def __pragma__(name, *args):   # Will be called below by executing the stripped line of source code
 
             nonlocal stripComments
-        
+
             if name == 'stripcomments':
                 stripComments = mayStripComments
             if name == 'ifdef':
                 passStack.append (args [0] in symbols)
             elif name == 'ifndef':
-                passStack.append (not args [0] in symbols)
+                passStack.append(args [0] not in symbols)
             elif name == 'else':
                 passStack [-1] = not passStack [-1]
             elif name == 'endif':
@@ -296,47 +289,54 @@ def digestJavascript (code, symbols, mayStripComments, mayRemoveAnnotations, ref
             return False                # Skip line anyhow, independent of passStack
         else:
             return all (passStack)      # Skip line only if not in passing state according to passStack
-    
+
     passableLines = [line for line in code.split ('\n') if passable (line)]
-    
+
     if stripComments:
         passableLines = [commentlessLine for commentlessLine in [stripSingleLineComments (line) for line in passableLines] if commentlessLine]
-        
+
     result = Any (
         digestedCode = '\n'.join (passableLines),
         nrOfLines = len (passableLines),
         exportedNames = [],
         importedModuleNames = []
     )
-    
+
     namesPattern = re.compile ('({.*})')
     pathPattern = re.compile ('([\'|\"].*[\'|\"])')
     wordPattern = re.compile (r'[\w/*$]+')  # /S matches too much, e.g. { and }  ??? Is this OK in all cases? Scrutinize code below...
     for line in passableLines:
         words = wordPattern.findall (line)
-        
+
         if words:
             if mayRemoveAnnotations and words [0] == '/*':  # If line starts with an annotation
                 words = words [3 : ]                        # Remove the annotation before looking for export / import keywords
-                
+
             if words:    
                 if words [0] == 'export':
                     # Deducing exported names from JavaScript is needed to facilitate * import by other modules
-                    
+
                     if words [1] in {'var', 'function'}:
                         # Export prefix:    "export var ... or export function ..."
-                        
+
                         result.exportedNames.append (words [2])
                     else:
                         # Transit export:   "export {p, q, r, s};"  
-                        
+
                         # Find exported names as "{p, q, r, s}"
                         match = namesPattern.search (line)
-                        
+
                         # Substitute to become "{'p', 'q', 'r', 's'}" and use that set to extend the exported names list
                         if match:
-                            result.exportedNames.extend (eval (wordPattern.sub (lambda nameMatch: f'\'{nameMatch.group ()}\'', match.group (1))))
-                         
+                            result.exportedNames.extend(
+                                eval(
+                                    wordPattern.sub(
+                                        lambda nameMatch: f'\'{nameMatch.group ()}\'',
+                                        match[1],
+                                    )
+                                )
+                            )
+
                 elif words [0] == 'import':
                     # Deducing imported modules from JavaScript is needed to provide the right modules to JavaScript-only modules
                     # They may have an explicit import list for unqualified access or an import * for qualified access
@@ -345,11 +345,11 @@ def digestJavascript (code, symbols, mayStripComments, mayRemoveAnnotations, ref
                     #
                     # - Unqualified import:   "import {p, q as Q, r, s as S} from '<relative module path>'"
                     # - Qualified import:     "import * from '<relative module path>'"  
-                    
+
                     match = pathPattern.search (line)
                     if match:
-                        result.importedModuleNames.append (eval (match.group (1)) [2:-3])
-                        
+                        result.importedModuleNames.append(eval(match[1])[2:-3])
+
     return result
 
     

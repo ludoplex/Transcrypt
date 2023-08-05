@@ -46,7 +46,7 @@ try:
     )
 except: # Microsoft Edge bug in exp function
     pass
-    
+
 tangentialValues = list (range (-180, 180))
 radialValuesList = [
     [abs (t) for t in tangentialValues],
@@ -54,19 +54,13 @@ radialValuesList = [
     [abs (2 * t) for t in tangentialValues]
 ]
 kind = 'polar'
-Plotly.plot (
+Plotly.plot(
     kind,
     [
-        {
-            t: tangentialValues,
-            r: radialValues,
-            name: 'Cardioid {}'.format (i),
-        }
-        for i, radialValues in enumerate (radialValuesList)
+        {t: tangentialValues, r: radialValues, name: f'Cardioid {i}'}
+        for i, radialValues in enumerate(radialValuesList)
     ],
-    {
-        title: kind
-    }
+    {title: kind},
 )
 
 denseGrid = [8 * math.pi * step / 200 for step in range (-100, 101)]
@@ -79,44 +73,44 @@ def getZValues (xGrid, yGrid):
     ]
 
 kind = 'wireframe'
-document.getElementById (kind) .innerHTML = 'Plotly {} not yet functional for JS6'.format (kind)
+document.getElementById(
+    kind
+).innerHTML = f'Plotly {kind} not yet functional for JS6'
 
 aType = 'scatter3d'
-Plotly.plot (
+Plotly.plot(
     kind,
-    itertools.chain (
+    itertools.chain(
         [
             {
                 x: denseGrid,
-                y: [sparseGrid [i] for value in denseGrid],
-                z: getZValues (denseGrid, sparseGrid) [i],
+                y: [sparseGrid[i] for _ in denseGrid],
+                z: getZValues(denseGrid, sparseGrid)[i],
                 type: aType,
                 mode: 'lines',
-                line: {color:'rgb(0,0,255)'},
+                line: {color: 'rgb(0,0,255)'},
                 zmin: -0.2,
                 zmax: 1,
                 showscale: not i,
             }
-            for i in range (20)
+            for i in range(20)
         ],
         [
             {
-                x: [sparseGrid [i] for value in denseGrid],
+                x: [sparseGrid[i] for _ in denseGrid],
                 y: denseGrid,
-                z: zip (*getZValues (sparseGrid, denseGrid)) [i],   # Poor man's transpose to avoid dependency of demo on Numscrypt
+                z: zip(*getZValues(sparseGrid, denseGrid))[i],
                 type: aType,
                 mode: 'lines',
-                line: {color:'rgb(0,0,255)'},
+                line: {color: 'rgb(0,0,255)'},
                 zmin: -0.2,
                 zmax: 1,
                 showscale: not i,
-            } for i in range (20)
-        ]
+            }
+            for i in range(20)
+        ],
     ),
-    {
-        title: kind,
-        showlegend: False
-    }
+    {title: kind, showlegend: False},
 )
 
 kind = 'ribbon'
@@ -197,30 +191,28 @@ Plotly.plot (
 )
 
 kind = 'scatter3d'
-def getRandoms (aMax):
-    return [random.randint (0, aMax) for i in range (20)]
-Plotly.plot (
+def getRandoms(aMax):
+    return [random.randint (0, aMax) for _ in range (20)]
+Plotly.plot(
     kind,
     [
         {
-            x: getRandoms (aMax),
-            y: getRandoms (aMax),
-            z: getRandoms (aMax),
+            x: getRandoms(aMax),
+            y: getRandoms(aMax),
+            z: getRandoms(aMax),
             mode: 'markers',
             marker: {
-                color: 'rgb({}, 127, {})'.format (127 - aMax * 12, aMax * 12),
+                color: f'rgb({127 - aMax * 12}, 127, {aMax * 12})',
                 size: 12,
                 symbol: 'circle',
                 line: {
-                    color: 'rgb({}, 255, {})'.format (255 - aMax * 25, aMax * 25),
-                    width: 1
-                }
+                    color: f'rgb({255 - aMax * 25}, 255, {aMax * 25})',
+                    width: 1,
+                },
             },
-            type: kind
+            type: kind,
         }
         for aMax in (2, 5, 10)
     ],
-    {
-        title: kind
-    }
+    {title: kind},
 )

@@ -6,7 +6,7 @@ __pragma__ ('iconv')
 # Keys that may denote a number are interpreted as such in Transcrypt.
 # All other keys are interpreted as strings.
 
-def run (autoTester):
+def run(autoTester):
     tel = {'guido': 4127, 'jack': 4098}
     autoTester.check (len (tel))
     tel ['sape'] = 4139
@@ -49,7 +49,7 @@ def run (autoTester):
     b = {'a' : 2, 'b': [1,2,3]}
     d = dict (b)
     autoTester.check (d)
-    b = {'a' : None, 'b': set([1,2,3])}
+    b = {'a': None, 'b': {1, 2, 3}}
     d = dict (b)
     autoTester.check (d)
     b = {'a' : {'c': 2}, 'b': (1,2)}
@@ -72,13 +72,12 @@ def run (autoTester):
 
     for k in sorted (knights):
         autoTester.check (k)
-        
+
     knight = {'rudolph': 'the righteous'}
     for k in knight:    # Autotest automatic conversion with one knight, since sort order of dict undefined
         autoTester.check (k)
-        
-    tel = {'guido': 123}
-    tel.update({'edsger': 42})
+
+    tel = {'guido': 123, 'edsger': 42}
     autoTester.check (tel.setdefault ('linus', 456))
     autoTester.check (tel ['linus'])
     autoTester.check (tel.setdefault ('guido', 789))
@@ -89,19 +88,17 @@ def run (autoTester):
     autoTester.check (tel.pop ('foo', None))
 
     # Check compound keys (issue 281)
-    
-    d = {}
-    d ['a'] = 3777
+
+    d = {'a': 3777}
     d [(1, 2)] = 4777
     autoTester.check (d ['a'], d [(1, 2)])
 
     __pragma__ ('opov')
-    d = {}
-    d ['a'] = 3777
+    d = {'a': 3777}
     d [(1, 2)] = 4777
     autoTester.check (d ['a'], d [(1, 2)])
     __pragma__ ('noopov')
-    
+
     # Check exceptions
     knights = {'robin': 'the brave', 'gallahad': 'the pure'}
     autoTester.check (

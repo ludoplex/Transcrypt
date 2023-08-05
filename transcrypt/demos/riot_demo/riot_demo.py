@@ -17,7 +17,7 @@ class P(RiotTag):
     def count_up(self):
         self.counter = self.counter + 1
         self.pp('counter:', self.counter, 'len lv:', len(self.lv), 'adding one lv' )
-        self.lv.append({'name': 'n' + self.counter})
+        self.lv.append({'name': f'n{self.counter}'})
         return self.counter
 
 # try some inheritance...

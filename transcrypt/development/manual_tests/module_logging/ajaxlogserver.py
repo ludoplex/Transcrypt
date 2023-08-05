@@ -12,15 +12,14 @@ def setup_options():
                         help="Which network interface this server will bind to. Default is %(default)s")
     parser.add_argument("--port", dest="port", default=8081,type=int,
                         help="The port that the HTTP server will bind to.")
-    args = parser.parse_args()
-    return(args)
+    return parser.parse_args()
 
 
 class reqHandler(http.server.BaseHTTPRequestHandler):
 
     def print_log(self, qdata):
         if "msg" in qdata:
-            print("MSG: %s" % qdata["msg"])
+            print(f'MSG: {qdata["msg"]}')
         else:
             print("ERROR: No Message")
 

@@ -106,10 +106,10 @@ class AJAXHandler(logging.Handler):
             v = ord(v)
             hVal = v.toString(16)
             if ( len(hVal) == 1 ):
-                hVal = "0" + hVal
+                hVal = f"0{hVal}"
             # Convert this value from a character into
             # %xx format
-            hVal = "%" + hVal
+            hVal = f"%{hVal}"
             return(hVal)
 
         p = re.compile(r"[^-A-Za-z0-9\-\._~:/?#[\]@!$&'()\*+,;=`]")
@@ -121,19 +121,12 @@ class AJAXHandler(logging.Handler):
         Emit a record.
         Send the record to the Web server as a percent-encoded dictionary
         """
-        if ( type(record) is str ):
-            msg = record
-        else:
-            msg = self.format(record)
-
+        msg = record if ( type(record) is str ) else self.format(record)
         try:
             url = self.url
             data = None
             if self.method == "GET":
-                if (url.find('?') >= 0):
-                    sep = '&'
-                else:
-                    sep = '?'
+                sep = '&' if (url.find('?') >= 0) else '?'
                 url = url + "{}msg={}".format(sep, msg)
                 url = self.urlencode(url)
             else: # "POST"

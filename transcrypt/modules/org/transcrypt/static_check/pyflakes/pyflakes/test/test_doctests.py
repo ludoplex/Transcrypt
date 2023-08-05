@@ -22,9 +22,9 @@ class _DoctestMixin(object):
                   line.startswith('finally:') or
                   line.startswith('else:') or
                   line.startswith('elif ')):
-                line = "... %s" % line
+                line = f"... {line}"
             else:
-                line = ">>> %s" % line
+                line = f">>> {line}"
             lines.append(line)
         doctestificator = textwrap.dedent('''\
             def doctest_something():

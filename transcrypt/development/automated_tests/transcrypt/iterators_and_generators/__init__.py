@@ -27,7 +27,7 @@ def exhaustableGenerator (i):
     for i in range (5):
         yield 2 * i
 
-def run (autoTester):
+def run(autoTester):
     exhaustableGenExp = (a * a * a for a in [10, 20, 30])   # Currently still converted to iterator on list comprehension, must also be iterable
     # So becomes py_iter (aList).
     # List already has an __iter__ which it will return, it's a __PyIterator__
@@ -54,29 +54,29 @@ def run (autoTester):
                 autoTester.check (next (iterator))
         except Exception as exception:
             autoTester.check (exception.__class__.__name__)
-            
+
     for iterable in iterables:
         autoTester.check ('[3]')
         for n in iterable:
             autoTester.check (n)
-            
+
         autoTester.check ('[4]')
         for n in iterable:
             autoTester.check (n)
-            
+
     # BEGIN issue 196: for loop over iter (), runs OK but needs JavaScript 6. This should be clearly in the docs.
-            
+
     a = 0
     vals = [1,2,3]
     ret = iter (vals)
     for m in ret:
         a += m
     autoTester.check (a)
-     
+
     # END issue 196
-                
+
     # BEGIN 1st example with 'send'
-        
+
     __pragma__ ('gsend')
 
     def test0 ():
@@ -98,22 +98,22 @@ def run (autoTester):
     next (gen1)
     autoTester.check (gen1.send (3))
     autoTester.check (gen1.send (4))
-    
+
     # END 1st example with 'send'
-    
+
     def subGenerator ():
         yield 27
         yield 37
         yield 47
-    
-    
+
+
     def mainGenerator ():
         yield 17
         yield from subGenerator ()
         yield 57
-        
-    autoTester.check (* [i for i in mainGenerator ()])
-    
+
+    autoTester.check(*list(mainGenerator ()))
+
     def subCoroutine ():
         autoTester.check (38)
         yield
@@ -122,8 +122,8 @@ def run (autoTester):
         autoTester.check (58)
         yield
         autoTester.check (68)
-    
-    
+
+
     def mainCoroutine ():
         autoTester.check (18)
         yield
@@ -132,7 +132,7 @@ def run (autoTester):
         autoTester.check (78)
         yield
         autoTester.check (88)
-        
+
     m = mainCoroutine ()
     for i in range (5):
         m.send (None)

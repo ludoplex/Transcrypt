@@ -22,14 +22,14 @@ class __main__:
 # Browser root singleton
 class window:
     class console:
-        def log (*args):
-            builtins.print ('console.log :\t', *args)
+        def log(self):
+            builtins.print('console.log :\t', *self)
             
-        def dir (arg):
-            builtins.print ('console.dir :\t', arg, '\tof type\t', type (arg))
+        def dir(self):
+            builtins.print('console.dir :\t', self, '\tof type\t', type(self))
 
-    def alert (anObject):
-        input ('window.alert:\t {}\t(Press [ENTER] to continue)'.format (anObject))
+    def alert(self):
+        input(f'window.alert:\t {self}\t(Press [ENTER] to continue)')
 
 # Add attributes of window to global namespace as is done in a browser
 for attributeName in window.__dict__:
@@ -47,10 +47,7 @@ def __set_stubsymbols__ (symbols):
     global __symbols__
     __symbols__ = symbols
     
-def __pragma__ (*args):
+def __pragma__(*args):
     if args [0] == 'defined':
-        for arg in args [1 : ]:
-            if arg in __symbols__:
-                return True
-        return False
+        return any(arg in __symbols__ for arg in args[1 :])
     

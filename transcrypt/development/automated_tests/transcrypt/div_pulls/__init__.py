@@ -32,23 +32,24 @@ docstring
 
 a = A (5.5)
 
-def run (autoTester):   
+def run(autoTester):   
     autoTester.check ('Pull 56')
     s = 'abcdefghij'
     autoTester.check (s [2:3])
     autoTester.check (s [:3])
     autoTester.check (s [2:])
     autoTester.check (s [::2])
-    
+
     autoTester.check ('Pull 59')
     autoTester.check (list (filter (lambda x: x % 2 == 0, range (10))))
     autoTester.check (list (map (lambda x: x*x, range (0, 31, 3))))
-    
+
     autoTester.check ('Pull 561')
-    def brackets (word):
+    def brackets(word):
         autoTester.check ('sideeffect')
-        return '[' + word + ']'
+        return f'[{word}]'
+
     autoTester.check (brackets ('anything') .lower ())   #__:opov
-    
+
     pull575.run (autoTester)
     

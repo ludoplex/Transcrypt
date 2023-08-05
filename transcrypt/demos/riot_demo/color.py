@@ -26,7 +26,7 @@ def _recurse(col, g, *s):
         except:
             # ... or normal output - in the current color
             msgs.pop() # TODO: msgs[-1] = ... instead pop() + append
-            msgs.append('%c{}'.format(i))
+            msgs.append(f'%c{i}')
 
 # offering public, maybe of use. turned in _recurse into [fg, bg]
 # like red=[[0, 100, 90],[0, 100, 50]]
@@ -45,10 +45,7 @@ hsl = {'red'     : [  0, 100, 90, 50],
 def _col(col): return lambda *parts: lambda g: _recurse(col, g, *parts)
 
 # TODO globals() not yet, so will import this in the clients:
-colors = {}
-# TODO .keys() currently necessary, should be easy to fix:
-for col in hsl.keys():
-    colors[col] = _col(col)
+colors = {col: _col(col) for col in hsl.keys()}
 
 def cprint(*s):
     msgs, styles = [], []
@@ -62,7 +59,7 @@ def cprint(*s):
         # FIXME this *crazy* eval is required since console.apply
         # is patched in Transcrypt
         st = '", "'.join(styles)
-        st = ''.join(("console.log(\"", msg, '", "' + st + '")'))
+        st = ''.join(("console.log(\"", msg, f'", "{st}")'))
         __pragma__('js', '{}', 'eval(st)')
 
 # TODO if __name__ == '__main__' not works, could be cool for quicktests on the

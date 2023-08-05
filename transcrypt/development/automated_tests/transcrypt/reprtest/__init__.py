@@ -8,7 +8,7 @@ def run(test):
     test.check( str(v) )
     v = "asdf"
     test.check( repr(v) )
-    test.check( str(v) )
+    test.check(v)
     v = True
     test.check( repr(v) )
     test.check( str(v) )
@@ -57,7 +57,7 @@ def run(test):
     v = ["asdf", 2.00009, "1234"]
     test.check( repr(v) )
     test.check( str(v) )
-    v = set([1,2,3])
+    v = {1, 2, 3}
     test.check( repr(v) )
     test.check( str(v) )
     v = set([])
@@ -122,36 +122,49 @@ def run(test):
     test.check( repr( d ) )
     test.check( str( d ) )
 
+
+
     class Test1(object):
         def __init__(self, val):
             self._val = val
 
         def __str__(self):
-            return("[Test1 {}]".format(self._val))
+            return f"[Test1 {self._val}]"
 
         def __repr__(self):
             return(str(self))
+
+
+
 
     class Test2(object):
         def __init__(self, val):
             self._val = val
 
         def __repr__(self):
-            return("[Test2 {},{}]".format(self._val, self._val*2))
+            return f"[Test2 {self._val},{self._val * 2}]"
 
         def __str__(self):
             return( repr(self) )
 
+
+
+
     class Test3(Test2):
         def __str__(self):
-            return("[Test3 {}]".format(self._val))
+            return f"[Test3 {self._val}]"
+
+
+
 
     class Test4(object):
         def __init__(self, val):
             self._val = val
 
         def __repr__(self):
-            return("[Test4 {}]".format(self._val))
+            return f"[Test4 {self._val}]"
+
+
 
 
     t1 = Test1(2)

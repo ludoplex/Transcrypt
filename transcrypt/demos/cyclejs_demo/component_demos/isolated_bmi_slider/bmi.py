@@ -31,7 +31,7 @@ def main(sources):
 
     def render(v):
         bmi, weight_vdom, height_vdom = v
-        return dom.div([weight_vdom, height_vdom, dom.h2('BMI is ' + bmi)])
+        return dom.div([weight_vdom, height_vdom, dom.h2(f'BMI is {bmi}')])
 
     vdomS = xs.combine(bmiS, weight_vdomS, height_vdomS).map(render)
 

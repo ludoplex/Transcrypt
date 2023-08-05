@@ -21,9 +21,9 @@ class SolarSystem:
     def __init__ (self):
         self.lineIndex = 0
     
-    def greet (self):
+    def greet(self):
         self.planet = self.planets [int (Math.random () * len (self.planets))]
-        document.getElementById ('greet') .innerHTML = 'Hello {}'.format (self.planet [0])
+        document.getElementById ('greet') .innerHTML = f'Hello {self.planet[0]}'
         self.explain ()
         
     def explain (self):

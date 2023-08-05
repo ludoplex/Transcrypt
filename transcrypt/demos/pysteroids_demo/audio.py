@@ -7,7 +7,7 @@ def load(player_element, sourcefile):
         audio_element = document.getElementById(player_element)
 
         if not len(audio_element):
-            raise Exception("unable to load audio from element '{}'".format(player_element))
+            raise Exception(f"unable to load audio from element '{player_element}'")
 
         if len(sourcefile):
             audio_element.src = sourcefile
@@ -17,8 +17,7 @@ def load(player_element, sourcefile):
         logging.exception(e)
 
 def clip(filename):
-    player = __new__(Audio(filename))
-    return player
+    return __new__(Audio(filename))
 
 def loop(filename):
 

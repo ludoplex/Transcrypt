@@ -38,20 +38,6 @@
 import re
 
 
-# Module initialization
-# @note - we don't have command line options - the user must
-#    call the `setWarningOptions` method if they wish to provide
-#    custom warning filtering.
-
-# filters contains a sequence of filter 5-tuples
-# The components of the 5-tuple are:
-# - an action: error, ignore, always, default, module, or once
-# - a compiled regex that must match the warning message
-# - a class representing the warning category
-# - a compiled regex that must match the module that is being warned
-# - a line number for the line being warning, or 0 to mean any line
-# If either if the compiled regexs are None, match anything.
-
 class Actions:
     error = "error"
     ignore = "ignore"
@@ -60,7 +46,7 @@ class Actions:
     module = "module"
     once = "once"
 
-ActionSet = set([ x for x in dir(Actions) if not x.startswith("_")])
+ActionSet = {x for x in dir(Actions) if not x.startswith("_")}
 
 # @note - transcrypt can't use import or eval so we have a map
 #    setup to make our lives easier
@@ -119,13 +105,11 @@ def _formatwarnmsg_impl(msg):
     """ @note - we've removed the msg.source handling and the associated
     tracemalloc code as this isn't available in the js runtime.
     """
-    s = "{}:{}: {}: {}\n".format(
-        msg.filename, msg.lineno, msg.category, str(msg.message)
-        )
+    s = f"{msg.filename}:{msg.lineno}: {msg.category}: {str(msg.message)}\n"
 
     if msg.line:
         line = msg.line.strip()
-        s += "  {}\n".format(line)
+        s += f"  {line}\n"
 
     return s
 
@@ -177,7 +161,7 @@ def addWarningCategory(cat):
     if ( name not in CategoryMap ):
         CategoryMap[name] = cat
     else:
-        raise Exception("Warning Category {} already exists".format(name))
+        raise Exception(f"Warning Category {name} already exists")
 
 
 __pragma__("kwargs")
@@ -193,7 +177,7 @@ def filterwarnings(action, message="", category=Warning, module="", lineno=0,
     'lineno' -- an integer line number, 0 matches all warnings
     'append' -- if true, append to the list of filters
     """
-    assert action in ActionSet , "invalid action: {}".format(action)
+    assert action in ActionSet, f"invalid action: {action}"
     assert isinstance(message, str), "message must be a string"
 #    assert issubclass(category, Warning), "category must be a Warning subclass"
     assert isinstance(module, str), "module must be a string"
@@ -212,7 +196,7 @@ def simplefilter(action, category=Warning, lineno=0, append=False):
     'lineno' -- an integer line number, 0 matches all warnings
     'append' -- if true, append to the list of filters
     """
-    assert action in ActionSet , "invalid action: {}".format(action)
+    assert action in ActionSet, f"invalid action: {action}"
     assert isinstance(lineno, int) and lineno >= 0, \
            "lineno must be an int >= 0"
     _add_filter(action, None, category, None, lineno, append=append)
@@ -226,9 +210,8 @@ def _add_filter(*item, append):
         except Exception: # ValueError was previous here
             pass
         filters.insert(0, item)
-    else:
-        if item not in filters:
-            filters.append(item)
+    elif item not in filters:
+        filters.append(item)
     _filters_mutated()
 __pragma__("nokwargs")
 
@@ -366,7 +349,9 @@ def warn_explicit(message, category, filename, lineno,
         registry[key] = 1
     else:
         # Unrecognized actions are errors
-        raise RuntimeError("Unrecognized action ({}) in warnings.filters:\n {}".format(action, item))
+        raise RuntimeError(
+            f"Unrecognized action ({action}) in warnings.filters:\n {item}"
+        )
     # Print message and context
     msg = WarningMessage(message, category.__name__, filename, lineno)
     _showwarnmsg(msg)
@@ -483,13 +468,13 @@ def _processoptions(args):
         try:
             _setoption(arg)
         except _OptionError as msg:
-            console.log("WARNING: Invalid -W option ignored: {}".format(msg))
+            console.log(f"WARNING: Invalid -W option ignored: {msg}")
 
 # Helper for _processoptions()
 def _setoption(arg):
     parts = arg.split(':')
     if len(parts) > 5:
-        raise _OptionError("too many fields (max 5): {}".format(arg))
+        raise _OptionError(f"too many fields (max 5): {arg}")
     while len(parts) < 5:
         parts.append('')
     action, message, category, module, lineno = [s.strip() for s in parts]
@@ -498,14 +483,14 @@ def _setoption(arg):
     category = _getcategory(category)
     module = re.escape(module)
     if module:
-        module = module + '$'
+        module = f'{module}$'
     if lineno:
         try:
             lineno = int(lineno)
             if lineno < 0:
                 raise ValueError
         except (ValueError, OverflowError):
-            raise _OptionError("invalid lineno {}".format(lineno))
+            raise _OptionError(f"invalid lineno {lineno}")
     else:
         lineno = 0
     filterwarnings(action, message, category, module, lineno)
@@ -518,31 +503,21 @@ def _getaction(action):
     for a in ActionSet:
         if a.startswith(action):
             return a
-    raise _OptionError("invalid action: {}".format(action))
+    raise _OptionError(f"invalid action: {action}")
 
 # Helper for _setoption()
 def _getcategory(category):
     if not category:
         return Warning
-    if ( category in CategoryMap.keys() ):
-        try:
-            cat = CategoryMap[category]
-        except NameError:
-            raise _OptionError("unknown warning category: {}".format(category))
-    else:
+    if category not in CategoryMap.keys():
         # @note - transcrypt does not have the ability to import
-        raise Exception("Unable to import category: {}, use `addWarningCategory`".format(category))
-        # i = category.rfind(".")
-        # module = category[:i]
-        # klass = category[i+1:]
-        # try:
-        #     m = __import__(module, None, None, [klass])
-        # except ImportError:
-        #     raise _OptionError("invalid module name: %r" % (module,))
-        # try:
-        #     cat = getattr(m, klass)
-        # except AttributeError:
-        #     raise _OptionError("unknown warning category: %r" % (category,))
+        raise Exception(
+            f"Unable to import category: {category}, use `addWarningCategory`"
+        )
+    try:
+        cat = CategoryMap[category]
+    except NameError:
+        raise _OptionError(f"unknown warning category: {category}")
     #if not issubclass(cat, Warning):
     #    raise _OptionError("invalid warning category: {}".format(category))
     return cat

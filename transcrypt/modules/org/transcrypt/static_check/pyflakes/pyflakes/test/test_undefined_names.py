@@ -453,8 +453,9 @@ class Test(TestCase):
         Using the loop variable of a generator expression results in no
         warnings.
         """
-        self.flakes('(a for a in %srange(10) if a)' %
-                    ('x' if version_info < (3,) else ''))
+        self.flakes(
+            f"(a for a in {'x' if version_info < (3, ) else ''}range(10) if a)"
+        )
 
     def test_undefinedWithErrorHandler(self):
         """

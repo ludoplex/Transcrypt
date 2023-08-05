@@ -8,11 +8,11 @@ xxr = None
 xxs = None
 
 for name in ('xxp', 'xxq'):
-    globals () [name] = 'sub{}'.format (name.capitalize ())
+    globals () [name] = f'sub{name.capitalize()}'
 
-def f ():
+def f():
     for name in ('xxr', 'xxs'):
-        globals () [name] = 'sub{}'.format (name.capitalize ())
+        globals () [name] = f'sub{name.capitalize()}'
         
 def run (autoTester):
     f ()

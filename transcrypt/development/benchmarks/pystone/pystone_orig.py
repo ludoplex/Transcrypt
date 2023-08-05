@@ -87,8 +87,6 @@ def Proc0(loops=LOOPS):
     global PtrGlbNext
 
     starttime = clock()
-    for i in range(loops):
-        pass
     nulltime = clock() - starttime
 
     PtrGlbNext = Record()
@@ -103,18 +101,18 @@ def Proc0(loops=LOOPS):
 
     starttime = clock()
 
-    for i in range(loops):
+    String2Loc = "DHRYSTONE PROGRAM, 2'ND STRING"
+    for _ in range(loops):
         Proc5()
         Proc4()
         IntLoc1 = 2
         IntLoc2 = 3
-        String2Loc = "DHRYSTONE PROGRAM, 2'ND STRING"
         EnumLoc = Ident2
         BoolGlob = not Func2(String1Loc, String2Loc)
         while IntLoc1 < IntLoc2:
             IntLoc3 = 5 * IntLoc1 - IntLoc2
             IntLoc3 = Proc7(IntLoc1, IntLoc2)
-            IntLoc1 = IntLoc1 + 1
+            IntLoc1 += 1
         Proc8(Array1Glob, Array2Glob, IntLoc1, IntLoc3)
         PtrGlb = Proc1(PtrGlb)
         CharIndex = 'A'
@@ -128,10 +126,7 @@ def Proc0(loops=LOOPS):
         IntLoc1 = Proc2(IntLoc1)
 
     benchtime = clock() - starttime - nulltime
-    if benchtime == 0.0:
-        loopsPerBenchtime = 0.0
-    else:
-        loopsPerBenchtime = (loops / benchtime)
+    loopsPerBenchtime = 0.0 if benchtime == 0.0 else (loops / benchtime)
     return benchtime, loopsPerBenchtime
 
 def Proc1(PtrParIn):
@@ -192,10 +187,7 @@ def Proc6(EnumParIn):
     if EnumParIn == Ident1:
         EnumParOut = Ident1
     elif EnumParIn == Ident2:
-        if IntGlob > 100:
-            EnumParOut = Ident1
-        else:
-            EnumParOut = Ident4
+        EnumParOut = Ident1 if IntGlob > 100 else Ident4
     elif EnumParIn == Ident3:
         EnumParOut = Ident2
     elif EnumParIn == Ident4:
@@ -206,8 +198,7 @@ def Proc6(EnumParIn):
 
 def Proc7(IntParI1, IntParI2):
     IntLoc = IntParI1 + 2
-    IntParOut = IntParI2 + IntLoc
-    return IntParOut
+    return IntParI2 + IntLoc
 
 def Proc8(Array1Par, Array2Par, IntParI1, IntParI2):
     global IntGlob
@@ -225,38 +216,32 @@ def Proc8(Array1Par, Array2Par, IntParI1, IntParI2):
 def Func1(CharPar1, CharPar2):
     CharLoc1 = CharPar1
     CharLoc2 = CharLoc1
-    if CharLoc2 != CharPar2:
-        return Ident1
-    else:
-        return Ident2
+    return Ident1 if CharLoc2 != CharPar2 else Ident2
 
 def Func2(StrParI1, StrParI2):
     IntLoc = 1
     while IntLoc <= 1:
         if Func1(StrParI1[IntLoc], StrParI2[IntLoc+1]) == Ident1:
             CharLoc = 'A'
-            IntLoc = IntLoc + 1
+            IntLoc += 1
     if CharLoc >= 'W' and CharLoc <= 'Z':
         IntLoc = 7
     if CharLoc == 'X':
         return TRUE
-    else:
-        if StrParI1 > StrParI2:
-            IntLoc = IntLoc + 7
-            return TRUE
-        else:
-            return FALSE
+    if StrParI1 <= StrParI2:
+        return FALSE
+    IntLoc += 7
+    return TRUE
 
 def Func3(EnumParIn):
     EnumLoc = EnumParIn
-    if EnumLoc == Ident3: return TRUE
-    return FALSE
+    return TRUE if EnumLoc == Ident3 else FALSE
 
 if __name__ == '__main__':
     import sys
     def error(msg):
         print(msg, end=' ', file=sys.stderr)
-        print("usage: %s [number_of_loops]" % sys.argv[0], file=sys.stderr)
+        print(f"usage: {sys.argv[0]} [number_of_loops]", file=sys.stderr)
         sys.exit(100)
     nargs = len(sys.argv) - 1
     if nargs > 1:

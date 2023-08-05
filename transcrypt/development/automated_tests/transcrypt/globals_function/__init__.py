@@ -10,11 +10,11 @@ xxr = None
 xxs = None
 
 for name in ('xxp', 'xxq'):
-    globals () [name] = 'main{}'.format (name.capitalize ())    
+    globals () [name] = f'main{name.capitalize()}'    
     
-def f ():
+def f():
     for name in ('xxr', 'xxs'):
-        globals () [name] = 'main{}'.format (name.capitalize ())
+        globals () [name] = f'main{name.capitalize()}'
         
 def run (autoTester):
     f ()                 # All vars of main added

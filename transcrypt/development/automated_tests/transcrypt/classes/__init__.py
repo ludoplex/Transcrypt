@@ -1,4 +1,4 @@
-def run (autoTester):
+def run(autoTester):
     autoTester.check ('<br>General<br>')
 
     class A:
@@ -9,31 +9,31 @@ def run (autoTester):
 
         def show (self, label):
             autoTester.check ('A.show', label, self.x)
-            
+
         def show2 (self, label):
             autoTester.check ('A.show2', label, self.x)
-        
+
     class B:
         p, q = 456, 789
         def __init__ (self, y):
             autoTester.check ('In B constructor')
             self.y = y
             autoTester.check (self.p)
-            
+
         def show (self, label):
             autoTester.check ('B.show', label, self.y)
-            
+
     class C (A, B):
         def __init__ (self, x, y):
             autoTester.check ('In C constructor')
             A.__init__ (self, x)
             B.__init__ (self, y)
-            
+
         def show (self, label):
             A.show (self, label)
             B.show (self, label)
             autoTester.check ('C.show', label, self.x, self.y)
-        
+
     a = A (1001)
     a.show ('america')
     autoTester.check (A.p)
@@ -59,15 +59,15 @@ def run (autoTester):
 
     show3 = c.show
     show3 ('copy')
-    
+
     autoTester.check (hasattr (a, 'x'))
     autoTester.check (hasattr (a, 'y'))
     autoTester.check (hasattr (a, 'p'))
     autoTester.check (hasattr (a, 'q'))
-    
+
     autoTester.check ('<br><br>Augmented isinstance and issubclass<br>')
     # Augmented meaning: compatible with native JavaScript types
-        
+
     simpleTypes = (dict, list, A, B, C, bool, str, float, int, object)
     tupleTypes = ((dict, list), (bool, int), (bool, A), (C, B), (B, object))
     for i, types in enumerate ((simpleTypes, tupleTypes)):
@@ -83,22 +83,22 @@ def run (autoTester):
                 autoTester.check (i + 2, j, k, issubclass (aClass, aType))
                 if types == simpleTypes:
                     autoTester.check (i + 2, j, k, issubclass (aClass, simpleTypes))
-                    
+
     autoTester.check ('<br><br>Method resolution order<br>')
-    
-    def mro (aClass, result = None):
+
+    def mro(aClass, result = None):
         ''' Recursively assemble method resolution order from all base classes'''
         last = 0
         if result is None:
             result = [aClass]
             last = 1
         for aBase in aClass.__bases__:
-            if not aBase in result and aBase != object:
+            if aBase not in result and aBase != object:
                 result.append (aBase)
                 mro (aBase, result)
         if last and object in aClass.__bases__:
             aRoot.append (object)
         return result
-        
+
     autoTester.check ([aClass.__name__ for aClass in mro (C)])
     

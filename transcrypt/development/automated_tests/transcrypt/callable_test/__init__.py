@@ -32,7 +32,7 @@ def run(test):
     a = {"asdf" : 1, "qwer": 2}
     test.check( callable(a) )
 
-    a = set([1,2])
+    a = {1, 2}
     test.check(callable(a))
 
     __pragma__('opov')

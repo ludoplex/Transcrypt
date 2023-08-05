@@ -148,12 +148,9 @@ class Match(object):
             for i in range(len(self._obj)-1,0,-1):
                 if (self._obj[i] is not None):
                     return(i)
-            # None of the capture groups matched -
-            # this seems like it shouldn't happen
-            return(None)
-        else:
-            # No Capture Groups
-            return(None)
+        # None of the capture groups matched -
+        # this seems like it shouldn't happen
+        return(None)
 
     def expand(self, template):
         """
@@ -166,40 +163,35 @@ class Match(object):
         if multiple groups are provided, a tuple of strings is returned
         """
         ret = []
-        if ( len(args) > 0 ):
+        if args:
             for index in args:
                 if type(index) is str:
-                    if self._namedGroups is not None:
-                        if ( index not in self._namedGroups.keys() ):
-                            raise ReIndexError()
-                        ret.append( self._obj[self._namedGroups[index]] )
-                    else:
+                    if self._namedGroups is None:
                         raise NotImplementedError("No NamedGroups Available");
-                else:
-                    if ( index >= len(self._obj) ):
-                        # js will return an 'undefined' and we
-                        # want this to return an index error
-                        # Built-in Exceptions not defined ?
+                    if ( index not in self._namedGroups.keys() ):
                         raise ReIndexError()
+                    ret.append( self._obj[self._namedGroups[index]] )
+                elif ( index >= len(self._obj) ):
+                    # js will return an 'undefined' and we
+                    # want this to return an index error
+                    # Built-in Exceptions not defined ?
+                    raise ReIndexError()
+                else:
                     ret.append(self._obj[index])
         else:
             ret.append(self._obj[0])
 
-        if ( len(ret) == 1 ):
-            return(ret[0])
-        else:
-            return(tuple(ret))
+        return ret[0] if ( len(ret) == 1 ) else (tuple(ret))
 
     def groups(self, default = None):
         """ Get all the groups in this match. Replace any
         groups that did not contribute to the match with default
         value.
         """
-        if ( len(self._obj) > 1 ):
-            ret = self._obj[1:]
-            return(tuple([x if x is not None else default for x in ret]))
-        else:
+        if len(self._obj) <= 1:
             return(tuple())
+        ret = self._obj[1:]
+        return tuple(x if x is not None else default for x in ret)
 
     def groupdict(self, default = None):
         """ The concept of named captures doesn't exist
@@ -207,15 +199,14 @@ class Match(object):
         For the python translated re we will have a group dict where
         possible.
         """
-        if ( self._namedGroups is not None ):
-            ret = {}
-            for gName, gId in self._namedGroups.items():
-                value = self._obj[gId]
-                ret[gName] = value if value is not None else default
-            return(ret)
-        else:
+        if self._namedGroups is None:
             # JS Only does not implement this
             raise NotImplementedError("No NamedGroups Available")
+        ret = {}
+        for gName, gId in self._namedGroups.items():
+            value = self._obj[gId]
+            ret[gName] = value if value is not None else default
+        return(ret)
 
     def start(self, group = 0):
         """ Find the starting index in the string for the passed
@@ -229,12 +220,11 @@ class Match(object):
         """
         gId = 0
         if ( type(group) is str ):
-            if ( self._namedGroups is not None):
-                if ( group not in self._namedGroups.keys() ):
-                    raise ReIndexError()
-                gId = self._namedGroups[group]
-            else:
+            if self._namedGroups is None:
                 raise NotImplementedError("No NamedGroups Available")
+            if ( group not in self._namedGroups.keys() ):
+                raise ReIndexError()
+            gId = self._namedGroups[group]
         else:
             gId = group
 
@@ -243,26 +233,14 @@ class Match(object):
 
         if ( gId == 0 ):
             return(self._obj.index)
+        if self._obj[gId] is None:
+            # This capture did not contribute the match.
+            return(-1)
+        r = compile(escape(self._obj[gId]), self._re.flags)
+        if m := r.search(self._obj[0]):
+            return(self._obj.index + m.start())
         else:
-            # We don't really have a good way to do
-            # this in javascript. so we will attempt
-            # to match the string we found as a
-            # sub position in the main string - this
-            # isn't perfect though because you could
-            # create a capture that only matches on
-            # the last in a group - this is a difficult
-            # problem to solve without completely
-            # re-writing the regex engine from scratch.
-            if ( self._obj[gId] is not None ):
-                r = compile(escape(self._obj[gId]), self._re.flags)
-                m = r.search(self._obj[0])
-                if m:
-                    return(self._obj.index + m.start())
-                else:
-                    raise Exception("Failed to find capture group")
-            else:
-                # This capture did not contribute the match.
-                return(-1)
+            raise Exception("Failed to find capture group")
 
     def end(self, group = 0):
         """ Find the ending index in the string for the passed
@@ -276,12 +254,11 @@ class Match(object):
         """
         gId = 0
         if ( type(group) is str ):
-            if ( self._namedGroups is not None):
-                if ( group not in self._namedGroups.keys() ):
-                    raise ReIndexError()
-                gId = self._namedGroups[group]
-            else:
+            if self._namedGroups is None:
                 raise NotImplementedError("No NamedGroups Available")
+            if ( group not in self._namedGroups.keys() ):
+                raise ReIndexError()
+            gId = self._namedGroups[group]
         else:
             gId = group
 
@@ -290,26 +267,14 @@ class Match(object):
 
         if ( gId == 0 ):
             return( self._obj.index + len(self._obj[0]))
+        if self._obj[gId] is None:
+            # This capture did not contribute the match.
+            return(-1)
+        r = compile(escape(self._obj[gId]), self._re.flags)
+        if m := r.search(self._obj[0]):
+            return(self._obj.index + m.end())
         else:
-            # We don't really have a good way to do
-            # this in javascript. so we will attempt
-            # to match the string we found as a
-            # sub position in the main string - this
-            # isn't perfect though because you could
-            # create a capture that only matches on
-            # the last in a group - this is a difficult
-            # problem to solve without completely
-            # re-writing the regex engine from scratch.
-            if ( self._obj[gId] is not None ):
-                r = compile(escape(self._obj[gId]), self._re.flags)
-                m = r.search(self._obj[0])
-                if m:
-                    return(self._obj.index + m.end())
-                else:
-                    raise Exception("Failed to find capture group")
-            else:
-                # This capture did not contribute the match.
-                return(-1)
+            raise Exception("Failed to find capture group")
 
     def span(self, group = 0):
         """ Find the start and end index in the string for the passed
@@ -333,7 +298,7 @@ class Regex(object):
         @param flags - string of javascript flags for the subsequently
            created RegExp object.
         """
-        if ( not ((flags & ASCII) > 0) ):
+        if flags & ASCII <= 0:
             flags |= UNICODE
 
         self._flags = flags
@@ -345,7 +310,7 @@ class Regex(object):
 
         # we will determine groups by using another regex
         # that tacks on an empty match.
-        _, groupCounterRegex = self._compileWrapper(pattern + '|', flags)
+        _, groupCounterRegex = self._compileWrapper(f'{pattern}|', flags)
         self._groups = groupCounterRegex.exec('').length-1
         # Javascript does not have named captures so this
         # will never have content in js only mode
@@ -353,8 +318,7 @@ class Regex(object):
 
     # Read-only Properties
     def _getPattern(self):
-        ret = self._pypattern.replace('\\', '\\\\')
-        return(ret)
+        return self._pypattern.replace('\\', '\\\\')
     def _setPattern(self, val):
         raise AttributeError("readonly attribute")
     pattern = property(_getPattern, _setPattern)
@@ -372,10 +336,7 @@ class Regex(object):
     groups = property(_getGroups, _setGroups)
 
     def _getGroupIndex(self):
-        if ( self._groupindex is None ):
-            return({})
-        else:
-            return(self._groupindex)
+        return ({}) if ( self._groupindex is None ) else self._groupindex
     def _setGroupIndex(self, val):
         raise AttributeError("readonly attribute")
     groupindex = property(_getGroupIndex, _setGroupIndex)
@@ -388,7 +349,6 @@ class Regex(object):
         """
         jsFlags = self._convertFlags(flags)
 
-        rObj = None
         errObj = None
         # The Exceptions need to be converted to python exceptions
         # in order to propagate appropriately
@@ -401,9 +361,10 @@ class Regex(object):
                    }
                    ''')
 
-        if ( errObj is not None ):
+        if errObj is not None:
             raise error(errObj.message, errObj, pattern, flags)
 
+        rObj = None
         return(jsFlags, rObj)
 
     def _convertFlags(self, flags):
@@ -418,8 +379,7 @@ class Regex(object):
             (GLOBAL, "g"),
             (UNICODE, "u"),
         ]
-        ret = "".join( [x[1] for x in bitmaps if (x[0] & flags) > 0] )
-        return(ret)
+        return "".join( [x[1] for x in bitmaps if (x[0] & flags) > 0] )
 
     def _getTargetStr(self, string, pos, endpos):
         """ Given an start and endpos, slice out a target string.
@@ -428,10 +388,8 @@ class Regex(object):
         if ( endpos is not None ):
             if ( endpos < endPtr):
                 endPtr = endpos
-        if ( endPtr < 0 ):
-            endPtr = 0
-        ret = string[pos:endPtr]
-        return(ret)
+        endPtr = max(endPtr, 0)
+        return string[pos:endPtr]
 
     def _patternHasCaptures(self):
         """ Check if the regex pattern contains a capture
@@ -449,8 +407,7 @@ class Regex(object):
         #       here - we need to search complete string and then
         #       reject if the match happens outside of pos:endpos
         rObj = self._obj
-        m = rObj.exec(string)
-        if m:
+        if m := rObj.exec(string):
             if ( m.index < pos or m.index > endpos ):
                 return(None)
             else:
@@ -470,8 +427,7 @@ class Regex(object):
             endpos = len(string)
 
         rObj = self._obj
-        m = rObj.exec(target)
-        if m:
+        if m := rObj.exec(target):
             # Match only at the beginning
             if ( m.index == pos ):
                 return( Match(m, string, pos, endpos, self, self._groupindex))
@@ -491,15 +447,14 @@ class Regex(object):
             strEndPos = endpos
 
         rObj = self._obj
-        m = rObj.exec(target)
-        if m:
-            obsEndPos = (m.index+len(m[0]))
-            if ( m.index == pos and obsEndPos == strEndPos ):
-                return( Match(m, string, pos, strEndPos, self, self._groupindex))
-            else:
-                return(None)
-        else:
+        if not (m := rObj.exec(target)):
             return(None)
+        obsEndPos = (m.index+len(m[0]))
+        return (
+            (Match(m, string, pos, strEndPos, self, self._groupindex))
+            if (m.index == pos and obsEndPos == strEndPos)
+            else None
+        )
 
     def split(self, string, maxsplit = 0):
         """ Split the passed string on each match of this regex
@@ -522,47 +477,38 @@ class Regex(object):
         mObj = None
         rObj = self._obj
         if ( maxsplit == 0 ):
-            mObj = string.split(rObj)
-            return(mObj)
-        else:
-            # the split limit parameter in js does not behave like
-            # the maxsplit parameter in python - hence we need to
-            # do this manually.
-            # @todo - make this better handle the flags
-            flags = self._flags
-            flags |= GLOBAL
+            return string.split(rObj)
+        # the split limit parameter in js does not behave like
+        # the maxsplit parameter in python - hence we need to
+        # do this manually.
+        # @todo - make this better handle the flags
+        flags = self._flags
+        flags |= GLOBAL
 
-            _, rObj = self._compileWrapper(self._jspattern, flags)
-            ret = []
-            lastM = None
-            cnt = 0
-            for i in range(0, maxsplit):
-                m = rObj.exec(string)
-                if m:
-                    cnt += 1
-                    if ( lastM is not None ):
-                        # subsequent match
-                        start = lastM.index + len(lastM[0])
-                        head = string[start:m.index]
-                        ret.append(head)
-                        if ( len(m) > 1 ):
-                            ret.extend(m[1:])
-                    else:
-                        # First match
-                        head = string[:m.index]
-                        ret.append(head)
-                        if ( len(m) > 1 ):
-                            ret.extend(m[1:])
-                    lastM = m
-                else:
-                    break
+        _, rObj = self._compileWrapper(self._jspattern, flags)
+        ret = []
+        lastM = None
+        cnt = 0
+        for _ in range(0, maxsplit):
+            if not (m := rObj.exec(string)):
+                break
 
+            cnt += 1
             if ( lastM is not None ):
-                endPos = lastM.index + len(lastM[0])
-                end = string[endPos:]
-                ret.append(end)
+                # subsequent match
+                start = lastM.index + len(lastM[0])
+                head = string[start:m.index]
+            else:
+                # First match
+                head = string[:m.index]
+            ret.append(head)
+            if ( len(m) > 1 ):
+                ret.extend(m[1:])
+            lastM = m
+        if ( lastM is not None ):
+            ret.append(string[lastM.index + len(lastM[0]):])
 
-            return(ret)
+        return(ret)
 
     def _findAllMatches(self, string, pos = 0, endpos = None):
         target = self._getTargetStr(string, pos, endpos)
@@ -576,9 +522,8 @@ class Regex(object):
 
         _, rObj = self._compileWrapper(self._jspattern, flags)
         ret = []
-        while( True ):
-            m = rObj.exec(target)
-            if m:
+        while True:
+            if m := rObj.exec(target):
                 ret.append(m)
             else:
                 break
@@ -652,26 +597,17 @@ class Regex(object):
         ret = ""
         totalMatch = 0
         lastEnd = -1
-        while(True):
+        while True:
             if (count > 0):
                 if ( totalMatch >= count ):
-                    if ( lastEnd < 0 ):
-                        # This is an odd case - if we got
-                        # here it means there is a bug in our code.
-                        return(ret,totalMatch)
-                    else:
+                    if lastEnd >= 0:
                         ret += string[lastEnd:m.index]
-                        return(ret,totalMatch)
-
+                    # This is an odd case - if we got
+                    # here it means there is a bug in our code.
+                    return(ret,totalMatch)
             m = rObj.exec(string)
             if m:
-                if ( lastEnd < 0 ):
-                    # first match
-                    ret += string[:m.index]
-                else:
-                    # subsequent match
-                    ret += string[lastEnd:m.index]
-
+                ret += string[:m.index] if ( lastEnd < 0 ) else string[lastEnd:m.index]
                 if callable(repl):
                     content = repl(Match(m, string, 0, len(string), self, self._groupindex))
                     ret += content
@@ -683,15 +619,12 @@ class Regex(object):
                 # copying from on the next pass
                 lastEnd = m.index + len(m[0])
             else:
-                # Failed to match means that there are no more
-                # matches in the string
                 if ( lastEnd < 0 ):
                     # No matches were found - we return string
                     # unmolested
                     return(string, 0)
-                else:
-                    ret += string[lastEnd:]
-                    return(ret,totalMatch)
+                ret += string[lastEnd:]
+                return(ret,totalMatch)
 
 
 class PyRegExp(Regex):
@@ -722,11 +655,11 @@ def compile(pattern, flags = 0):
     """ Compile a regex object and return
     an object that can be used for further processing.
     """
-    if ( flags & JSSTRICT ):
-        p = Regex(pattern, flags)
-    else:
-        p = PyRegExp(pattern, flags)
-    return(p)
+    return (
+        Regex(pattern, flags)
+        if (flags & JSSTRICT)
+        else PyRegExp(pattern, flags)
+    )
 
 def search(pattern, string, flags = 0):
     """ Search a string for a particular matching pattern
@@ -782,10 +715,7 @@ def escape(string):
     """
     ret = None
     def replfunc(m):
-        if ( m[0] == "\\" ):
-            return("\\\\\\\\")
-        else:
-            return("\\\\" + m[0])
+        return "\\\\\\\\" if ( m[0] == "\\" ) else ("\\\\" + m[0])
 
     # @note - I had an issue getting replfunc to be called in
     #        javascript correctly when I didn't use this pragma

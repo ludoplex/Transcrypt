@@ -19,10 +19,10 @@ def main(sources):
     def get_url_params():
         rand = Math.round(Math.random() * 9) + 1
         url = {
-            'url': 'http://jsonplaceholder.typicode.com/users/' + str(rand),
+            'url': f'http://jsonplaceholder.typicode.com/users/{str(rand)}',
             'category': 'users',
-            'method': 'GET'
-            }
+            'method': 'GET',
+        }
         console.log(url)
         return url
 

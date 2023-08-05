@@ -10,10 +10,7 @@ def convertMappingDict(mdict):
     a dict object. mapping proxies create read-only dicts
     but we don't have that concept in transcrypt yet.
     """
-    ret = {}
-    for k in mdict.keys():
-        ret[k] = mdict[k]
-    return(ret)
+    return {k: mdict[k] for k in mdict.keys()}
 
 __pragma__("noskip")
 
@@ -31,27 +28,33 @@ def checkMatchProperties(test, flags = 0):
         test.check( result.pos )
         test.check( result.endpos )
         test.check( result.group() )
-        test.check( result.group(0) )
+        test.check(result[0])
         test.check( result.string )
 
         # Check readonly props of match
         def assignPos():
             result.pos = 1
+
         test.check(test.expectException(assignPos))
         def assignEndPos():
             result.endpos = 1
+
         test.check(test.expectException(assignEndPos))
         def assignRe():
             result.re = "asdfasdf"
+
         test.check(test.expectException(assignRe))
         def assignStr():
             result.string = "asdf"
+
         test.check(test.expectException(assignStr))
         def assignLastGroup():
             result.lastgroup = "asdfasdf"
+
         test.check(test.expectException(assignLastGroup))
         def assignLastIndex():
             result.lastindex = 33
+
         test.check(test.expectException(assignLastIndex))
     else:
         test.checkPad("NULL", 11)
@@ -124,11 +127,11 @@ def checkIgnoreCase(test, flags = 0):
     test.check( re.search("as", testStr3, flags|re.I).pos )
     test.check( re.search("as", testStr3, flags|re.I).endpos )
     test.check( re.search("as", testStr3, flags|re.I).group() )
-    test.check( re.search("as", testStr3, flags|re.I).group(0) )
+    test.check(re.search("as", testStr3, flags|re.I)[0])
     test.check( re.search("AS", testStr3, flags|re.I).pos )
     test.check( re.search("AS", testStr3, flags|re.I).endpos )
     test.check( re.search("AS", testStr3, flags|re.I).group() )
-    test.check( re.search("AS", testStr3, flags|re.I).group(0) )
+    test.check(re.search("AS", testStr3, flags|re.I)[0])
 
 def checkSearchWithGroups(test, flags = 0):
     r = "\\[([\\d]+)\\]"
@@ -137,8 +140,8 @@ def checkSearchWithGroups(test, flags = 0):
     test.check( re.search(r, testStr2, flags).endpos)
     test.check( re.search(r, testStr2, flags).groups())
     test.check( re.search(r, testStr2, flags).group())
-    test.checkEval(lambda: re.search(r, testStr2, flags).group(0))
-    test.checkEval(lambda: re.search(r, testStr2, flags).group(1))
+    test.checkEval(lambda: re.search(r, testStr2, flags)[0])
+    test.checkEval(lambda: re.search(r, testStr2, flags)[1])
     test.check( re.search(r, testStr2, flags).start())
     test.checkEval(lambda: re.search(r, testStr2, flags).start(0))
     test.checkEval(lambda: re.search(r, testStr2, flags).start(1))
@@ -155,9 +158,7 @@ def checkSearchWithGroups(test, flags = 0):
     test.check( re.search(r, testStr2, flags).lastindex)
 
     for i in range(2,50):
-        test.check(
-            test.expectException(lambda: re.search(',', testStr1, flags).group(i))
-        )
+        test.check(test.expectException(lambda: re.search(',', testStr1, flags)[i]))
 
 def checkMatchOps(test, flags = 0):
     test.check( re.match("asdf", "asdf", flags).pos )
@@ -192,17 +193,17 @@ def checkMatchWithNamedGroups(test, flags = 0):
         m = r.match("http://asdf")
         test.check( m.groups() )
         test.check( m.group() )
-        test.check( m.group(0) )
-        test.check( m.group(1) )
-        test.check( m.group("prefix") )
-        test.check( m.group("suffix") )
+        test.check(m[0])
+        test.check(m[1])
+        test.check(m["prefix"])
+        test.check(m["suffix"])
 
         m = r.match("ftp://192.168.1.1")
         test.check( m.group() )
-        test.check( m.group(0) )
-        test.check( m.group(1) )
-        test.check( m.group("prefix") )
-        test.check( m.group("suffix") )
+        test.check(m[0])
+        test.check(m[1])
+        test.check(m["prefix"])
+        test.check(m["suffix"])
         m = r.match("555-5555")
         test.check(m)
 
@@ -223,14 +224,14 @@ def checkMatchWithNamedGroups(test, flags = 0):
         m = r.match("1-234-567-9012")
         test.check(m.groups())
         test.check(m.group())
-        test.check(m.group(0))
-        test.check(m.group(1))
-        test.check(m.group(2))
-        test.check(m.group(3))
+        test.check(m[0])
+        test.check(m[1])
+        test.check(m[2])
+        test.check(m[3])
 
-        test.check( m.group("country") )
-        test.check( m.group("areacode") )
-        test.check( m.group("number") )
+        test.check(m["country"])
+        test.check(m["areacode"])
+        test.check(m["number"])
 
         m = r.match("adfs;")
         test.check(m)
@@ -239,19 +240,15 @@ def checkMatchWithGroups(test, flags = 0):
     rgx = re.compile(r'(\w)(\w)(\w)?', flags)
     test.check(rgx.pattern)
     test.check(rgx.groups)
-    m = rgx.match('abc')
-    if m:
-        test.check(m.group(0))
-        test.check(m.group(1))
+    if m := rgx.match('abc'):
+        test.check(m[0])
+        test.check(m[1])
         test.check(m.group(1, 2))
         test.check(m.group(2, 1))
     else:
         test.checkPad(None, 4)
 
-    # groups() with default value
-
-    m = rgx.match('ab')
-    if m:
+    if m := rgx.match('ab'):
         test.check(m.groups(0))
     else:
         test.checkPad(None, 1)
@@ -261,12 +258,11 @@ def checkMatchWithGroups(test, flags = 0):
     test.check(rgx.pattern)
     test.check(rgx.groups)
 
-    m = rgx.match("asdf[23]")
-    if m:
+    if m := rgx.match("asdf[23]"):
         test.check( m.groups() )
-        test.check( m.group(0) )
-        test.check( m.group(1) )
-        test.check( test.expectException( lambda: m.group(2) ) )
+        test.check(m[0])
+        test.check(m[1])
+        test.check(test.expectException(lambda: m[2]))
     else:
         test.checkPad(None, 4)
 
@@ -307,8 +303,7 @@ def checkFullMatchOps(test, flags = 0):
     test.check( (re.compile("o[gh]", flags).fullmatch("dog") is None))
     test.check( (re.compile("o[gh]", flags).fullmatch("ogre") is None))
 
-    m = re.compile("o[gh]", flags).fullmatch("doggie",1,3)
-    if m:
+    if m := re.compile("o[gh]", flags).fullmatch("doggie", 1, 3):
         test.check(m.pos)
         test.check(m.endpos)
     else:
@@ -342,10 +337,8 @@ def checkSplitOps(test, flags = 0):
 
 def checkSubOps(test, flags = 0):
     def dashrepl(matchobj):
-        if matchobj.group(0) == '-':
-            return ' '
-        else:
-            return '-'
+        return ' ' if matchobj.group(0) == '-' else '-'
+
     test.check(re.sub('-{1,2}', dashrepl, 'pro----gram-files',0, flags))
     test.check(re.sub('-{1,2}', '4', 'pro----gram-files',0, flags))
     test.check(re.subn('-{1,2}', dashrepl, 'pro----gram-files',0,flags))

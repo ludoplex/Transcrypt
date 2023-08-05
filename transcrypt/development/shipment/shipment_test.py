@@ -57,28 +57,28 @@ class BrowserController:
             time.sleep (0.5)
         self.nrOfTabs = len (self.webDriver.window_handles)
                 
-    def open (self, url, run):
+    def open(self, url, run):
         print (f'Browser controller is opening URL: {url}')
-    
+
         try:
             if self.nrOfTabs > 0:
-            
+
                 if commandArgs.unattended:
-                
+
                     # ---- Show in existing tab
-                    
+
                     self.webDriver.execute_script (f'window.location.href = "{url}";') 
                 else:
-                
+
                     # ---- Open new tab
-                    
+
                     self.webDriver.execute_script (f'window.open ("{url}","_blank");')  # !!! Avoid redundant open command
                     self.waitForNewTab ()
                     self.webDriver.switch_to.window (self.webDriver.window_handles [-1]) 
             else:
-            
+
                 # ---- Open browser and default tab
-                
+
                 self.webDriver.get (url)
                 self.waitForNewTab ()
         except:
@@ -90,24 +90,21 @@ class BrowserController:
                 if 'failed' in self.message.text or 'succeeded' in self.message.text:
                     break
                 time.sleep (0.5)
-            
+
             print ()
             print ('=========================================================================')
             print (f'Back to back autotest, result: {self.message.text.upper ()}')
             print ('=========================================================================')
             print ()
-            
-            if 'succeeded' in self.message.text:
-                return True
-            else:
-                return False
+
+            return 'succeeded' in self.message.text
         else:
             print ()
             print ('=========================================================================')
             print ('No back to back autotest')
             print ('=========================================================================')
             print ()
-            
+
             return True
             
 browserController = BrowserController ()
@@ -133,12 +130,12 @@ transpileCommand = commandArgs.transcom if commandArgs.transcom else 'ts' if com
 
 print (f'\nApplication root directory: {appRootDir}\n')
 
-def getAbsPath (relPath):
-    return '{}/{}'.format (appRootDir, relPath)
+def getAbsPath(relPath):
+    return f'{appRootDir}/{relPath}'
 
 os.system ('cls' if os.name == 'nt' else 'clear')
-os.system (f'killall node')
-        
+os.system('killall node')
+
 # ---- Start an http server in the Transcryp/transcrypt directory
 
 print (appRootDir)
@@ -254,22 +251,35 @@ def test (relSourcePrepath, run, extraSwitches, outputPrename = '', nodeJs = Fal
 
 for switches in (('', '-f ') if commandArgs.fcall else ('',)):
     test ('development/automated_tests/hello/autotest', True, switches)
-    test ('development/automated_tests/transcrypt/autotest', True, switches + '-c -xr -xg ')
+    test(
+        'development/automated_tests/transcrypt/autotest',
+        True,
+        f'{switches}-c -xr -xg ',
+    )
 
     test ('development/automated_tests/time/autotest', True, switches, needsAttention = True)
     test ('development/automated_tests/re/autotest', True, switches)
-    
+
     test ('development/manual_tests/async_await/test', False, switches)
-    test ('development/manual_tests/import_export_aliases/test', False, switches + '-am ')
+    test(
+        'development/manual_tests/import_export_aliases/test',
+        False,
+        f'{switches}-am ',
+    )
     test ('development/manual_tests/module_random/module_random', False, switches)
-    test ('development/manual_tests/static_types/static_types', False, switches + '-ds -dc ', outputPrename = 'static_types')
+    test(
+        'development/manual_tests/static_types/static_types',
+        False,
+        f'{switches}-ds -dc ',
+        outputPrename='static_types',
+    )
     test ('development/manual_tests/transcrypt_and_python_results_differ/results', False, switches)
     test ('development/manual_tests/transcrypt_only/transcrypt_only', False, switches)
 
     # test ('demos/parcel_demo/test_shipment', False, switches, parcelJs = True)  # ??? Must be before nodejs_demo, why?  # BROKEN - needs update to Parcel V2
     test ('demos/nodejs_demo/nodejs_demo', False, switches, nodeJs = True)
 
-    test ('demos/terminal_demo/terminal_demo', False, switches, needsAttention = True)  
+    test ('demos/terminal_demo/terminal_demo', False, switches, needsAttention = True)
     test ('demos/hello/hello', False, switches, needsAttention = False)
     test ('demos/jquery_demo/jquery_demo', False, switches)
     test ('demos/d3js_demo/d3js_demo', False, switches)
@@ -280,17 +290,17 @@ for switches in (('', '-f ') if commandArgs.fcall else ('',)):
     test ('demos/three_demo/three_demo', False, switches)
     test ('demos/pong/pong', False, switches)
     test ('demos/pysteroids_demo/pysteroids', False, switches)
-    
+
     test ('demos/turtle_demos/star', False, switches, pause = 2)
     test ('demos/turtle_demos/snowflake', False, switches, pause = 2)
     test ('demos/turtle_demos/mondrian', False, switches, pause = 2)
     test ('demos/turtle_demos/mandala', False, switches, pause = 2)
-    
+
     # test ('demos/cyclejs_demo/cyclejs_demo', False, switches)     # Broken
     test ('demos/cyclejs_demo/cyclejs_http_demo', False, switches)
     test ('demos/cyclejs_demo/component_demos/isolated_bmi_slider/bmi', False, switches)
     test ('demos/cyclejs_demo/component_demos/labeled_slider/labeled_slider', False, switches)
-    
+
     test ('tutorials/baseline/bl_010_hello_world/hello_world', False, switches)
     test ('tutorials/baseline/bl_020_assign/assign', False, switches)
     test ('tutorials/baseline/bl_030_if_else_prompt/if_else_prompt', False, switches, needsAttention = True)
@@ -299,7 +309,12 @@ for switches in (('', '-f ') if commandArgs.fcall else ('',)):
     test ('tutorials/baseline/bl_042_for_nested/for_nested', False, switches)
     test ('tutorials/baseline/bl_045_while_simple/while_simple', False, switches, needsAttention = True)
 
-    test ('tutorials/static_typing/static_typing', False, switches + '-c -ds ', outputPrename = 'static_typing')
+    test(
+        'tutorials/static_typing/static_typing',
+        False,
+        f'{switches}-c -ds ',
+        outputPrename='static_typing',
+    )
 
     if relSourcePrepathsOfErrors:
         print ('\n\n!!!!!!!!!!!!!!!!!!!!\n')
@@ -309,9 +324,9 @@ for switches in (('', '-f ') if commandArgs.fcall else ('',)):
 
         print ('\nSHIPMENT TEST FAILED\n')
         sys.exit (1)
-        
+
     else:
-    
+
         # ---- Make docs, the resulting files are untracked
 
         if not commandArgs.unattended:
@@ -321,9 +336,9 @@ for switches in (('', '-f ') if commandArgs.fcall else ('',)):
             os.system ('touch *.rst')
             os.system ('make html')
             os.chdir (origDir)
-            
+
         # ---- Terminate
-                
+
         print ('\nSHIPMENT TEST SUCCEEDED\n')
         sys.exit (0)
         

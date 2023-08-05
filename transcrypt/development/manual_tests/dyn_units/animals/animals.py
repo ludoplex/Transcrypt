@@ -14,8 +14,8 @@ class Animal:
         self.fed = False
         document.getElementById (self.name) .innerHTML  = self.speak (f'I was born just now! My kingdom is: {asm.getTaxoTag ()}. My species is {self.species}')       
         
-    def speak (self, text):
-        return f'{self.name} says: ' + text
+    def speak(self, text):
+        return f'{self.name} says: {text}'
 
     def feed (self):
         document.getElementById (self.name) .innerHTML = self.speak (

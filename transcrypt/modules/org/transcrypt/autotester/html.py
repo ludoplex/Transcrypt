@@ -64,13 +64,13 @@ class HTMLGenerator(object):
         """
         
         minified = False # Remove param 'minified' altogether and 
-        
+
         if ( self._fnameBase is None ):
             raise ValueError("Filename Base must be defined to generate")
-        fname = self._fnameBase + '.html'
+        fname = f'{self._fnameBase}.html'
 
         print (f'Generating {fname}')
-        
+
         jsPath = f'__target__/{self._fnameBase.split ("/")[-1]}.js'
 
         with open( fname, 'w', encoding = 'UTF-8') as f:
@@ -85,7 +85,7 @@ class HTMLGenerator(object):
 
             self._writeTableArea(f)
 
-            f.write ('<script type="module" src="{}"></script>\n\n'.format (jsPath))
+            f.write(f'<script type="module" src="{jsPath}"></script>\n\n')
             f.write("</body></html>")
 
     ##########################
@@ -138,13 +138,17 @@ class HTMLGenerator(object):
 
     def _writeStatusHeaderTemplate(self, f):
         f.write ('<b>Status:</b>\n')
-        f.write ('<div id="{}"></div><br><br>\n\n'.format (messageDivId))
+        f.write(f'<div id="{messageDivId}"></div><br><br>\n\n')
 
     def _writeTableArea(self, f):
-        f.write ('<div id="{}"></div>'.format(excAreaId))
-        f.write ('<div id="{}">'.format(resultsDivId))
-        f.write ('<div> <a id="{}" href="#"> Collapse All</a> <a id="{}" href="#">Expand All</a></div>'.format(forceCollapseId, forceExpandId))
-        f.write ('<table id="{}"><thead><tr> <th colspan="2"> CPython </th> <th colspan="2"> Transcrypt </th> </tr>'.format(tableId))
+        f.write(f'<div id="{excAreaId}"></div>')
+        f.write(f'<div id="{resultsDivId}">')
+        f.write(
+            f'<div> <a id="{forceCollapseId}" href="#"> Collapse All</a> <a id="{forceExpandId}" href="#">Expand All</a></div>'
+        )
+        f.write(
+            f'<table id="{tableId}"><thead><tr> <th colspan="2"> CPython </th> <th colspan="2"> Transcrypt </th> </tr>'
+        )
         f.write ('<tr> <th class="header-pos"> Location </th> <th class="header-val"> Value </th> <th class="header-val"> Value </th> <th class="header-pos"> Location </th> </tr></thead><tbody></tbody>')
         f.write ('</table>')
         f.write ('</div>')
@@ -162,16 +166,16 @@ class DataConverter(object):
         @param refDict python reference result data in the form of
         a dict. The keys are the names of the individual test modules.
         """
-        f.write('<div id="{}" style="display: None">'.format(referenceDivId))
+        f.write(f'<div id="{referenceDivId}" style="display: None">')
         for key in refDict.keys():
             itemData = ' | '.join([x[1] for x in refDict[key]])
             posContent = ' | '.join([x[0] for x in refDict[key]])
-            f.write('<div id="{}">\n'.format(key))
+            f.write(f'<div id="{key}">\n')
             # @note - we should probably HTML escape this
             #    data so that we don't get the HTML rendering
             #    engine mucking with our test result.
-            f.write ('<div id="{}">{}</div>\n\n'.format (refResultDivId, itemData))
-            f.write ('<div id="{}">{}</div>\n'.format(refPosDivId, posContent))
+            f.write(f'<div id="{refResultDivId}">{itemData}</div>\n\n')
+            f.write(f'<div id="{refPosDivId}">{posContent}</div>\n')
             f.write('</div>\n')
         f.write('</div></div>\n')
 
@@ -203,9 +207,6 @@ class DataConverter(object):
                 resultData = e.innerHTML.split(' | ')
             elif ( idStr == refPosDivId):
                 posData = e.innerHTML.split(' | ')
-            else:
-                # Unknown Element - very strange
-                pass
         return(posData, resultData)
 
 
@@ -213,7 +214,7 @@ def getRowClsName(name):
     """ Utility method for naming the test module class that
         a row belows to
     """
-    return("mod-" + name)
+    return f"mod-{name}"
 
 
 class JSTesterUI(object):
@@ -226,10 +227,16 @@ class JSTesterUI(object):
         self.expander = TestModuleExpander()
 
     def setOutputStatus(self, success):
-        if ( success ):
-            document.getElementById(messageDivId).innerHTML = '<div style="color: {}">Test succeeded</div>'.format (okColor)
+        if success:
+            document.getElementById(
+                messageDivId
+            ).innerHTML = f'<div style="color: {okColor}">Test succeeded</div>'
         else:
-            document.getElementById(messageDivId).innerHTML = '<div style="color: {}"><b>Test failed</b></div>'.format (errorColor)
+            document.getElementById(
+                messageDivId
+            ).innerHTML = (
+                f'<div style="color: {errorColor}"><b>Test failed</b></div>'
+            )
 
     def appendSeqRowName(self, name, errCount):
         """
@@ -243,7 +250,7 @@ class JSTesterUI(object):
 
         # Populate the Row
         headerCell = row.insertCell(0)
-        headerCell.innerHTML = name + " | Errors = " + str(errCount)
+        headerCell.innerHTML = f"{name} | Errors = {str(errCount)}"
         headerCell.colSpan = 4
         headerCell.style.textAlign= "center"
 
@@ -255,9 +262,9 @@ class JSTesterUI(object):
         # Insert at the end
         row = table.insertRow(-1);
         row.classList.add(clsName)
-        if not itemsAreEqual (testItem, refItem) :
+        if not itemsAreEqual (testItem, refItem):
             row.classList.add(faultRowClass)
-            refPos = "!!!" + refPos
+            refPos = f"!!!{refPos}"
         else:
             self.expander.setCollapsed(row, collapse)
 
@@ -287,7 +294,7 @@ class JSTesterUI(object):
         header.innerHTML = "Exception Thrown in JS Runtime";
         excElem.appendChild(header)
         content = document.createElement("p")
-        content.innerHTML = "Exception in {}: {}".format(testname, str(exc))
+        content.innerHTML = f"Exception in {testname}: {str(exc)}"
         excElem.appendChild(content)
         stacktrace = document.createElement("p")
         if ( exc.stack is not None ):

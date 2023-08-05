@@ -6,9 +6,7 @@ from org import threejs as three
 def pad_wrap(min, max, val):
     if val < min:
         return max
-    if val > max:
-        return min
-    return val
+    return min if val > max else val
 
 
 XWRAP = 0
@@ -39,9 +37,7 @@ def clamp(val, low, high):
 def sign(val):
     if val > 0:
         return 1
-    if val < 0:
-        return -1
-    return 0
+    return -1 if val < 0 else 0
 
 
 def now():
@@ -74,8 +70,7 @@ class AABB:
 class FPSCounter:
     def __init__(self, hud_element):
         self.frames = [.1]
-        for n in range(99):
-            self.frames.append(.1)
+        self.frames.extend(.1 for _ in range(99))
         self.next_frame = 0
         self.average = 0
         self.visible = True
@@ -95,7 +90,7 @@ class FPSCounter:
         self.average = total * 10
         if self.visible:
             # @todo: need a string formatting option to print out decimal MS
-            self.element.innerHTML = "{} fps".format(int(1000 / self.average))
+            self.element.innerHTML = f"{int(1000 / self.average)} fps"
 
 
 def advance(cr, value):
